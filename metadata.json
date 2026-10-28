@@ -1,0 +1,8 @@
+{
+  "name": "Naillabs — Profesyonel Tırnak Ürünleri",
+  "description": "Naillabs profesyonel tırnak ürünleri. Eğitim kitleri, freze ekipmanları ve manikür malzemeleri.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
