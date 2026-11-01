@@ -8,6 +8,8 @@ Mağaza ürünleri ve fiyatları, Global Config deposundaki `products` anahtarı
 
 ### Vercel kurulumu
 
+`vercel.json`, istemci taraflı React Router sayfalarını `/index.html` dosyasına yeniden yazar; böylece `/admin/giris` gibi adresler yenilendiğinde 404 yerine uygulama açılır. `/api/*` serverless fonksiyonları kendi uç noktalarında çalışmaya devam eder.
+
 1. Vercel projesinde `nailab-global-config` deposunu projeye bağlayın. Proje ortam değişkenlerinde `GLOBAL_CONFIG` veya `EDGE_CONFIG` bağlantı değişkeninin oluştuğunu doğrulayın. Değişkeni `VITE_` önekiyle eklemeyin.
 2. Global Config düzenleyicisindeki JSON nesnesini [`config/global-config.json`](./config/global-config.json) içeriğiyle başlatın. En üst düzey değer nesne olmalı ve `products` ile `websiteData` anahtarlarını birlikte içermelidir. `websiteData.copy`, müşteri sayfalarındaki metinlerin başlangıç değerlerini içerir.
 3. Vercel projesinin Environment Variables bölümünde aşağıdaki değişkenleri Preview ve Production ortamlarına ekleyin:
