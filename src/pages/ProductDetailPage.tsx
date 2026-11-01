@@ -80,7 +80,7 @@ export default function ProductDetailPage() {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { products, loading: catalogLoading, error: catalogError } = useProducts();
-  const configuredProduct = products.find((item) => item.id === id);
+  const configuredProduct = products.find((item) => item.id === id || item.databaseId === id);
   const product: Product | null = configuredProduct ? toAppProduct(configuredProduct) : null;
   const loading = catalogLoading;
   const kitContent = getEditableKitContent();

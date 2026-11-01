@@ -40,7 +40,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const items = useMemo(() => {
     if (productsLoading || productsError) return savedItems;
-    const currentProducts = new Map(products.map((product) => [product.id, product]));
+    const currentProducts = new Map(products.flatMap((product) => [
+      [product.databaseId ?? product.id, product],
+      [product.id, product],
+    ]));
     return savedItems.flatMap((item) => {
       const currentProduct = currentProducts.get(item.product.id);
       return currentProduct ? [{ ...item, product: toAppProduct(currentProduct) }] : [];

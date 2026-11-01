@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import defaults from '../../config/websiteData.json';
+import { supabase } from '../lib/supabase';
 
 const defaultCopy = defaults.copy as Record<string, string>;
 type WebsiteDataContextValue = {
@@ -36,27 +37,22 @@ export function WebsiteDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const controller = new AbortController();
-    fetch('/api/website-data', { cache: 'no-store', signal: controller.signal })
-      .then(async (response) => {
-        const body: unknown = await response.json();
-        if (!response.ok) {
-          const message = isRecord(body) && typeof body.error === 'string'
-            ? body.error
-            : 'WebsiteData yüklenemedi.';
-          throw new Error(message);
-        }
-        if (!isRecord(body) || !isRecord(body.websiteData)) {
-          throw new Error('WebsiteData API beklenen biçimde yanıt vermedi.');
-        }
-        updateWebsiteData(body.websiteData);
-      })
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === 'AbortError') return;
-        console.error('WebsiteData yüklenemedi; varsayılan metinler gösteriliyor:', error);
-      });
+    let active = true;
+    void (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('website_content')
+          .select('data')
+          .eq('id', 'site')
+          .maybeSingle();
+        if (error) throw error;
+        if (active && data?.data) updateWebsiteData(data.data);
+      } catch (error: unknown) {
+        if (active) console.error('Supabase site içerikleri yüklenemedi; varsayılan metinler gösteriliyor:', error);
+      }
+    })();
 
-    return () => controller.abort();
+    return () => { active = false; };
   }, [updateWebsiteData]);
 
   const value = useMemo(

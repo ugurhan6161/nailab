@@ -16,6 +16,7 @@ import { useProducts } from '../context/ProductsContext';
 import { useWebsiteData } from '../context/WebsiteDataContext';
 import type { StoreProduct } from '../lib/ecommerceData';
 import defaults from '../../config/websiteData.json';
+import { supabase } from '../lib/supabase';
 
 type WebsiteData = {
   copy: Record<string, string>;
@@ -25,19 +26,6 @@ const defaultCopy = defaults.copy as Record<string, string>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-async function readJson(response: Response): Promise<unknown> {
-  const text = await response.text();
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error(`Sunucu geçerli JSON döndürmedi (${response.status}).`);
-  }
-}
-
-function messageFrom(body: unknown, fallback: string): string {
-  return isRecord(body) && typeof body.error === 'string' ? body.error : fallback;
 }
 
 export default function AdminContentPage() {
@@ -59,14 +47,15 @@ export default function AdminContentPage() {
 
   useEffect(() => {
     let active = true;
-    fetch('/api/website-data', { cache: 'no-store' })
-      .then(async (response) => {
-        const body = await readJson(response);
-        if (!response.ok) throw new Error(messageFrom(body, 'WebsiteData yüklenemedi.'));
-        if (!isRecord(body) || !isRecord(body.websiteData)) {
-          throw new Error('WebsiteData API beklenen biçimde yanıt vermedi.');
-        }
-        const remote = body.websiteData;
+    void (async () => {
+      try {
+        const { data, error: loadError } = await supabase
+          .from('website_content')
+          .select('data')
+          .eq('id', 'site')
+          .maybeSingle();
+        if (loadError) throw loadError;
+        const remote = isRecord(data?.data) ? data.data : {};
         const remoteCopy = isRecord(remote.copy) ? remote.copy : {};
         const copy = Object.fromEntries(
           Object.entries({ ...defaults.copy, ...remoteCopy })
@@ -76,13 +65,12 @@ export default function AdminContentPage() {
           setWebsiteData({ ...remote, copy });
           setWebsiteDataLoaded(true);
         }
-      })
-      .catch((loadError: unknown) => {
+      } catch (loadError: unknown) {
         if (active) setError(loadError instanceof Error ? loadError.message : 'WebsiteData yüklenemedi.');
-      })
-      .finally(() => {
+      } finally {
         if (active) setLoadingWebsiteData(false);
-      });
+      }
+    })();
     return () => { active = false; };
   }, []);
 
@@ -143,29 +131,52 @@ export default function AdminContentPage() {
     setError(null);
     setSaved(false);
     try {
-      const response = await fetch('/api/admin/save', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          products: editableProducts.map((product) => ({
-            id: product.id,
-            title: product.title,
-            category: product.category,
-            price: product.price,
-            image: product.image,
-            description: product.description,
-            rating: product.rating,
-            reviews: product.reviews,
-            stock: product.stock,
-            ...(product.badge ? { badge: product.badge } : {}),
-            ...(typeof product.isNew === 'boolean' ? { isNew: product.isNew } : {}),
-          })),
-          websiteData,
-        }),
-      });
-      const body = await readJson(response);
-      if (!response.ok) throw new Error(messageFrom(body, 'İçerikler kaydedilemedi.'));
+      const submittedSlugs = new Set(editableProducts.map((product) => product.id));
+      const productRows = editableProducts.map((product) => ({
+        ...(product.databaseId ? { id: product.databaseId } : {}),
+        slug: product.id,
+        name: product.title.trim(),
+        category: product.category.trim(),
+        price: product.price,
+        image_url: product.image.trim(),
+        description: product.description.trim(),
+        stock: product.stock ?? 0,
+        rating: product.rating,
+        review_count: product.reviews,
+        badge: product.badge?.trim() || null,
+        is_new: product.isNew ?? false,
+        is_active: true,
+      }));
+      if (productRows.some((product) => !product.name || !product.category || !product.image_url || !product.description)) {
+        throw new Error('Ürün adı, kategori, görsel ve açıklama alanları boş bırakılamaz.');
+      }
+
+      const { error: productsSaveError } = await supabase
+        .from('products')
+        .upsert(productRows, { onConflict: 'slug' });
+      if (productsSaveError) throw new Error(`Ürünler kaydedilemedi: ${productsSaveError.message}`);
+
+      const { data: existingProducts, error: existingProductsError } = await supabase
+        .from('products')
+        .select('id, slug');
+      if (existingProductsError) throw new Error(`Ürün listesi doğrulanamadı: ${existingProductsError.message}`);
+
+      const removedIds = (existingProducts ?? [])
+        .filter((product) => product.slug && !submittedSlugs.has(product.slug))
+        .map((product) => product.id);
+      if (removedIds.length > 0) {
+        const { error: deactivateError } = await supabase
+          .from('products')
+          .update({ is_active: false })
+          .in('id', removedIds);
+        if (deactivateError) throw new Error(`Kaldırılan ürünler devre dışı bırakılamadı: ${deactivateError.message}`);
+      }
+
+      const { error: websiteSaveError } = await supabase
+        .from('website_content')
+        .upsert({ id: 'site', data: websiteData, updated_at: new Date().toISOString() });
+      if (websiteSaveError) throw new Error(`Web sitesi metinleri kaydedilemedi: ${websiteSaveError.message}`);
+
       updateWebsiteData(websiteData);
       setSaved(true);
       setProductDrafts(null);
@@ -213,7 +224,7 @@ export default function AdminContentPage() {
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 3, flexWrap: 'wrap' }}>
           <Box>
             <Typography variant="h1" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' } }}>Ürünler ve web sitesi metinleri</Typography>
-            <Typography color="text.secondary">Değişiklikleri kaydettiğinizde Vercel Global Config anında güncellenir.</Typography>
+            <Typography color="text.secondary">Ürünler ve site metinleri doğrudan Supabase veritabanına kaydedilir.</Typography>
           </Box>
           <Button variant="contained" startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <SaveOutlinedIcon />}
             onClick={save} disabled={saving || !websiteDataLoaded || Boolean(productsError)} color="secondary">
@@ -223,7 +234,7 @@ export default function AdminContentPage() {
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         {productsError && <Alert severity="error" sx={{ mb: 2 }}>{productsError}</Alert>}
-        {saved && <Alert severity="success" role="status" sx={{ mb: 2 }}>Ürünler ve web sitesi metinleri Vercel Global Config’e kaydedildi.</Alert>}
+        {saved && <Alert severity="success" role="status" sx={{ mb: 2 }}>Ürünler ve web sitesi metinleri Supabase’e kaydedildi.</Alert>}
 
         <Stack spacing={2} sx={{ mb: 5 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

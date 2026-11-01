@@ -11,6 +11,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../context/ProductsContext';
 import { supabase } from '../lib/supabase';
+import type { Order } from '../lib/supabase';
 import { siteText } from '../context/WebsiteDataContext';
 
 
@@ -61,57 +62,34 @@ export default function CheckoutPage() {
       return;
     }
     setLoading(true);
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        user_id: user?.id || null,
-        guest_email: user?.email || null,
-        guest_name: form.name.trim(),
-        guest_phone: form.phone.trim(),
-        status: 'beklemede',
-        subtotal,
-        shipping_cost: shippingCost,
-        total,
-        shipping_address: {
+    try {
+      const { data, error: orderError } = await supabase.rpc('create_store_order', {
+        p_guest_name: form.name.trim(),
+        p_guest_phone: form.phone.trim(),
+        p_guest_email: user?.email ?? null,
+        p_shipping_address: {
           address: form.address.trim(),
           city: form.city.trim(),
           district: form.district.trim(),
         },
-        payment_method: 'whatsapp',
-        notes: form.notes.trim() || null,
-      })
-      .select()
-      .single();
+        p_notes: form.notes.trim(),
+        p_items: items.map((item) => ({
+          product_id: item.product.id,
+          quantity: item.quantity,
+        })),
+      });
+      if (orderError) throw new Error(orderError.message);
+      if (!data || typeof data !== 'object') throw new Error('Supabase sipariş kaydı beklenen biçimde yanıt vermedi.');
 
-    if (orderError) {
-      // In demo mode or if Supabase is offline, generate a demo order number
-      const demoOrderNumber = `NLB-${Math.floor(10000 + Math.random() * 90000)}`;
-      clearCart();
-      navigate(`/siparis-tamamlandi/${demoOrderNumber}`);
-      return;
-    }
-
-    if (order) {
-      await supabase.from('order_items').insert(
-        items.map((i) => ({
-          order_id: order.id,
-          product_id: i.product.id,
-          product_name: i.product.name,
-          product_image: i.product.image_url,
-          unit_price: i.product.price,
-          quantity: i.quantity,
-          total_price: i.product.price * i.quantity,
-        }))
-      );
-
-      const itemsText = items
+      const order = data as Order;
+      const itemsText = (order.order_items ?? [])
         .map((i) => siteText(
           'src/pages/CheckoutPage.tsx#whatsapp-item',
           '• {quantity}x {product} - {price} ₺',
         )
           .replace('{quantity}', String(i.quantity))
-          .replace('{product}', i.product.name)
-          .replace('{price}', (i.product.price * i.quantity).toLocaleString('tr-TR')))
+          .replace('{product}', i.product_name)
+          .replace('{price}', i.total_price.toLocaleString('tr-TR')))
         .join('%0A');
       const msg = siteText(
         'src/pages/CheckoutPage.tsx#whatsapp-message',
@@ -124,13 +102,16 @@ export default function CheckoutPage() {
         .replace('{district}', form.district)
         .replace('{city}', form.city)
         .replace('{items}', itemsText)
-        .replace('{total}', total.toLocaleString('tr-TR'));
+        .replace('{total}', order.total.toLocaleString('tr-TR'));
 
       clearCart();
       window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
       navigate(`/siparis-tamamlandi/${order.order_number}`);
+    } catch (checkoutError) {
+      setError(checkoutError instanceof Error ? `Sipariş oluşturulamadı: ${checkoutError.message}` : 'Sipariş oluşturulamadı.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

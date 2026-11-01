@@ -9,7 +9,7 @@ import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { useAdminAuth } from '../context/AdminAuthContext';
-import { isAdminOrder } from '../lib/adminOrders';
+import { supabase } from '../lib/supabase';
 import type { Order } from '../lib/supabase';
 
 const statusOptions = ['beklemede', 'onaylandı', 'hazırlanıyor', 'kargoda', 'teslim edildi', 'iptal'];
@@ -24,27 +24,22 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!authenticated) { navigate('/admin/giris'); return; }
-    fetch('/api/admin/orders', { cache: 'no-store', credentials: 'same-origin' })
-      .then(async (response) => {
-        const body: unknown = await response.json();
-        if (!response.ok) {
-          const message = typeof body === 'object' && body !== null
-            && 'error' in body && typeof body.error === 'string'
-            ? body.error : 'Siparişler yüklenemedi.';
-          throw new Error(message);
-        }
-        if (
-          typeof body !== 'object' || body === null || !('orders' in body)
-          || !Array.isArray(body.orders) || !body.orders.every(isAdminOrder)
-        ) {
-          throw new Error('Sipariş API yanıtı beklenen biçimde değil.');
-        }
-        setOrders(body.orders);
-      })
-      .catch((loadError: unknown) => {
-        setError(loadError instanceof Error ? loadError.message : 'Siparişler yüklenemedi.');
-      })
-      .finally(() => setLoading(false));
+    let active = true;
+    void (async () => {
+      try {
+        const { data, error: loadError } = await supabase
+          .from('orders')
+          .select('*, order_items(*)')
+          .order('created_at', { ascending: false });
+        if (loadError) throw loadError;
+        if (active) setOrders((data ?? []) as Order[]);
+      } catch (loadError: unknown) {
+        if (active) setError(loadError instanceof Error ? loadError.message : 'Siparişler yüklenemedi.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
   }, [authenticated, authLoading, navigate]);
 
   if (!authenticated) return null;
@@ -52,19 +47,11 @@ export default function AdminOrdersPage() {
   const handleStatusChange = async (orderId: string, status: string) => {
     setError(null);
     try {
-      const response = await fetch('/api/admin/order-status', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, status }),
-      });
-      const body: unknown = await response.json();
-      if (!response.ok) {
-        const message = typeof body === 'object' && body !== null
-          && 'error' in body && typeof body.error === 'string'
-          ? body.error : 'Sipariş durumu güncellenemedi.';
-        throw new Error(message);
-      }
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', orderId);
+      if (updateError) throw updateError;
       setOrders((current) => current.map((order) => order.id === orderId ? { ...order, status } : order));
     } catch (updateError) {
       setError(updateError instanceof Error ? updateError.message : 'Sipariş durumu güncellenemedi.');

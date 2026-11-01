@@ -8,11 +8,13 @@ import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { useAdminAuth } from '../context/AdminAuthContext';
-import { isAdminOrder } from '../lib/adminOrders';
+import { useProducts } from '../context/ProductsContext';
+import { supabase } from '../lib/supabase';
 import type { Order } from '../lib/supabase';
 
 export default function AdminDashboardPage() {
   const { authenticated, loading: authLoading, logout } = useAdminAuth();
+  const { products, loading: productsLoading, error: productsError } = useProducts();
   const navigate = useNavigate();
   const [stats, setStats] = useState({ products: 0, orders: 0, revenue: 0, pending: 0 });
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
@@ -22,43 +24,28 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!authenticated) { navigate('/admin/giris'); return; }
+    if (productsLoading) return;
     (async () => {
       try {
-        const [productsResponse, ordersResponse] = await Promise.all([
-          fetch('/api/products', { cache: 'no-store' }),
-          fetch('/api/admin/orders?limit=10', { cache: 'no-store', credentials: 'same-origin' }),
-        ]);
-        const [productsBody, ordersBody]: unknown[] = await Promise.all([
-          productsResponse.json(),
-          ordersResponse.json(),
-        ]);
-        if (!productsResponse.ok) throw new Error('Ürün kataloğu yüklenemedi.');
-        if (!ordersResponse.ok) {
-          const message = typeof ordersBody === 'object' && ordersBody !== null
-            && 'error' in ordersBody && typeof ordersBody.error === 'string'
-            ? ordersBody.error : 'Siparişler yüklenemedi.';
-          throw new Error(message);
-        }
-        if (
-          typeof productsBody !== 'object' || productsBody === null
-          || !('products' in productsBody) || !Array.isArray(productsBody.products)
-          || typeof ordersBody !== 'object' || ordersBody === null
-          || !('orders' in ordersBody) || !Array.isArray(ordersBody.orders)
-          || !ordersBody.orders.every(isAdminOrder)
-        ) throw new Error('Admin panel API yanıtı beklenen biçimde değil.');
-
-        const orders = ordersBody.orders;
-        const revenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
-        const pending = orders.filter((order) => order.status === 'beklemede' || order.status === 'onaylandı').length;
-        setStats({ products: productsBody.products.length, orders: orders.length, revenue, pending });
-        setRecentOrders(orders);
+        if (productsError) throw new Error(`Ürünler yüklenemedi: ${productsError}`);
+        const { data: orders, error: ordersError } = await supabase
+          .from('orders')
+          .select('*, order_items(*)')
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (ordersError) throw ordersError;
+        const recent = (orders ?? []) as Order[];
+        const revenue = recent.reduce((sum, order) => sum + (order.total || 0), 0);
+        const pending = recent.filter((order) => order.status === 'beklemede' || order.status === 'onaylandı').length;
+        setStats({ products: products.length, orders: recent.length, revenue, pending });
+        setRecentOrders(recent);
       } catch (loadError) {
         setError(loadError instanceof Error ? loadError.message : 'Admin verileri yüklenemedi.');
       } finally {
         setLoading(false);
       }
     })();
-  }, [authenticated, authLoading, navigate]);
+  }, [authenticated, authLoading, navigate, products, productsError, productsLoading]);
 
   if (!authenticated) return null;
 
