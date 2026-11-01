@@ -21,7 +21,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { useFlyAnimation } from '../context/FlyAnimationContext';
 import { useProducts } from '../context/ProductsContext';
 import {
-  getCategories, getCategoryProducts,
+  getCategoryProducts,
   toAppProduct, type StoreProduct,
 } from '../lib/ecommerceData';
 import { siteText } from '../context/WebsiteDataContext';
@@ -33,8 +33,7 @@ export default function CategoryPage() {
   const navigate = useNavigate();
   const { itemCount, addToCart, isInCart } = useCart();
   const { wishlistIds, toggleWishlist, wishlistProducts } = useWishlist();
-  const categories = getCategories();
-  const { products: storeProducts, loading: catalogLoading, error: catalogError, refresh } = useProducts();
+  const { products: storeProducts, categories, loading: catalogLoading, error: catalogError, refresh } = useProducts();
   const {
     registerWishlistTarget,
     registerCartTarget,
