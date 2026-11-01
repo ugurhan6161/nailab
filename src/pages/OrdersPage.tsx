@@ -7,6 +7,9 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import type { Order, OrderItem } from '../lib/supabase';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 export default function OrdersPage() {
   const { user } = useAuth();
@@ -38,26 +41,22 @@ export default function OrdersPage() {
               '&:hover': { color: '#D0B198' },
             }}
           >
-            Hesabıma Geri Dön
-          </Button>
+            {siteText("src/pages/OrdersPage.tsx#65758129ef27", "Hesabıma Geri Dön ")}</Button>
         </Box>
 
         <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: { xs: 26, md: 36 }, fontWeight: 700, color: '#FFFFFF', mb: 4 }}>
-          Siparişlerim
-        </Typography>
+          {siteText("src/pages/OrdersPage.tsx#0915a43dd2d9", "Siparişlerim ")}</Typography>
 
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}><CircularProgress sx={{ color: '#D0B198' }} /></Box>
         ) : orders.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 12, bgcolor: '#14110E', borderRadius: 4, border: '1px solid rgba(255,255,255,0.08)' }}>
-            <Typography sx={{ fontSize: 48, mb: 2 }}>📦</Typography>
+            <Typography sx={{ fontSize: 48, mb: 2 }}>{siteText("src/pages/OrdersPage.tsx#e68ebc94437c", "📦")}</Typography>
             <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 22, color: '#FFFFFF', mb: 1 }}>
-              Henüz siparişiniz yok
-            </Typography>
-            <Typography sx={{ color: '#A0978E', mb: 3 }}>Mağazaya göz atarak ilk siparişinizi hemen verebilirsiniz.</Typography>
+              {siteText("src/pages/OrdersPage.tsx#12f052a0063f", "Henüz siparişiniz yok ")}</Typography>
+            <Typography sx={{ color: '#A0978E', mb: 3 }}>{siteText("src/pages/OrdersPage.tsx#b768c1bb488a", "Mağazaya göz atarak ilk siparişinizi hemen verebilirsiniz.")}</Typography>
             <Button component={Link} to="/magaza" variant="contained" sx={{ bgcolor: '#D0B198', color: '#0E0C0A', fontWeight: 700, px: 4, py: 1.2, borderRadius: 999, '&:hover': { bgcolor: '#EED2BC' } }}>
-              Mağazaya Git
-            </Button>
+              {siteText("src/pages/OrdersPage.tsx#ef0efbe02ee1", "Mağazaya Git ")}</Button>
           </Box>
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
@@ -82,7 +81,7 @@ export default function OrdersPage() {
                         <Typography sx={{ fontSize: 13, color: '#FFFFFF', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>
                           {item.product_name}
                         </Typography>
-                        <Typography sx={{ fontSize: 11, color: '#A0978E' }}>{item.quantity} adet</Typography>
+                        <Typography sx={{ fontSize: 11, color: '#A0978E' }}>{item.quantity} {siteText("src/pages/OrdersPage.tsx#5fd945674020", "adet")}</Typography>
                       </Box>
                     </Box>
                   ))}
@@ -92,12 +91,12 @@ export default function OrdersPage() {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Box>
                     <Typography sx={{ fontSize: 12, color: '#A0978E' }}>
-                      {o.order_items?.length || 0} ürün · {o.payment_method === 'kredi_karti' ? 'Kredi Kartı' : o.payment_method === 'havale' ? 'Havale/EFT' : 'Kapıda Ödeme'}
+                      {o.order_items?.length || 0} {siteText("src/pages/OrdersPage.tsx#2fa970b47de0", "ürün · ")}
+                      {paymentMethodText(o.payment_method)}
                     </Typography>
                   </Box>
                   <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 20, fontWeight: 700, color: '#D0B198' }}>
-                    {o.total.toLocaleString('tr-TR')} ₺
-                  </Typography>
+                    {o.total.toLocaleString('tr-TR')} {siteText("src/pages/OrdersPage.tsx#fb0484ae0c37", "₺ ")}</Typography>
                 </Box>
               </Paper>
             ))}
@@ -106,6 +105,12 @@ export default function OrdersPage() {
       </Container>
     </Box>
   );
+}
+
+function paymentMethodText(method: string) {
+  if (method === 'kredi_karti') return siteText('src/pages/OrdersPage.tsx#payment.card', 'Kredi Kartı');
+  if (method === 'havale') return siteText('src/pages/OrdersPage.tsx#payment.transfer', 'Havale/EFT');
+  return siteText('src/pages/OrdersPage.tsx#payment.cash', 'Kapıda Ödeme');
 }
 
 function statusBg(status: string) {

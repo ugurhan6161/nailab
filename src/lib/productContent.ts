@@ -1,4 +1,5 @@
 import type { Product } from './supabase';
+import { siteText } from '../context/WebsiteDataContext';
 
 export const PRODUCT_SLUG = 'naillabs-profesyonel-egitim-kiti';
 export const PRODUCT_ID = 'naillabs-profesyonel-egitim-kiti-ornek';
@@ -51,6 +52,27 @@ export const NAIL_FORMS = [
   { name: 'Yuvarlatılmış köşeli dikdörtgen', variant: 'rounded' as const },
   { name: 'Badem', variant: 'almond' as const },
 ];
+
+export function getEditableKitContent() {
+  return KIT_CONTENT.map((item, index) => ({
+    title: siteText(`src/lib/productContent.ts#kit.${index}.title`, item.title),
+    text: siteText(`src/lib/productContent.ts#kit.${index}.text`, item.text),
+  }));
+}
+
+export function getEditableFaq() {
+  return FAQ.map((item, index) => ({
+    q: siteText(`src/lib/productContent.ts#faq.${index}.question`, item.q),
+    a: siteText(`src/lib/productContent.ts#faq.${index}.answer`, item.a),
+  }));
+}
+
+export function getEditableNailForms() {
+  return NAIL_FORMS.map((form, index) => ({
+    ...form,
+    name: siteText(`src/lib/productContent.ts#nail-form.${index}.name`, form.name),
+  }));
+}
 
 export const demoProduct: Product = {
   id: PRODUCT_ID,

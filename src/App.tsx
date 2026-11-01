@@ -7,6 +7,8 @@ import { AuthProvider } from './context/AuthContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { FlyAnimationProvider } from './context/FlyAnimationContext';
 import { ProductsProvider } from './context/ProductsContext';
+import { WebsiteDataProvider, useWebsiteData } from './context/WebsiteDataContext';
+import { AdminAuthProvider } from './context/AdminAuthContext';
 
 import HomePage from './pages/HomePage';
 import ShopPage from './pages/ShopPage';
@@ -24,18 +26,36 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminProductsPage from './pages/AdminProductsPage';
 import AdminOrdersPage from './pages/AdminOrdersPage';
+import AdminContentPage from './pages/AdminContentPage';
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <ProductsProvider>
-        <AuthProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <FlyAnimationProvider>
-                <BrowserRouter>
-                  <Routes>
+      <WebsiteDataProvider>
+        <ProductsProvider>
+          <AuthProvider>
+            <AdminAuthProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <FlyAnimationProvider>
+                    <AppRoutes />
+                  </FlyAnimationProvider>
+                </WishlistProvider>
+              </CartProvider>
+            </AdminAuthProvider>
+          </AuthProvider>
+        </ProductsProvider>
+      </WebsiteDataProvider>
+    </ThemeProvider>
+  );
+}
+
+function AppRoutes() {
+  useWebsiteData();
+  return (
+    <BrowserRouter>
+      <Routes>
                     {/* 1. Splash / Landing Page */}
                     <Route path="/" element={<HomePage />} />
 
@@ -69,18 +89,13 @@ function App() {
                     <Route path="/admin/giris" element={<AdminLoginPage />} />
                     <Route path="/admin" element={<AdminDashboardPage />} />
                     <Route path="/admin/urunler" element={<AdminProductsPage />} />
+                    <Route path="/admin/icerik" element={<AdminContentPage />} />
                     <Route path="/admin/siparisler" element={<AdminOrdersPage />} />
 
                     {/* Fallback to Home */}
                     <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
-                </BrowserRouter>
-              </FlyAnimationProvider>
-            </WishlistProvider>
-          </CartProvider>
-        </AuthProvider>
-      </ProductsProvider>
-    </ThemeProvider>
+      </Routes>
+    </BrowserRouter>
   );
 }
 

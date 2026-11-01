@@ -7,6 +7,9 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 export default function TrainerPortalLoginPage() {
   const { signIn } = useAuth();
@@ -53,8 +56,7 @@ export default function TrainerPortalLoginPage() {
             '&:hover': { bgcolor: 'rgba(208, 177, 152, 0.15)' },
           }}
         >
-          Mağazaya Dön
-        </Button>
+          {siteText("src/pages/TrainerPortalLoginPage.tsx#8b69ee7ad0ec", "Mağazaya Dön ")}</Button>
       </Box>
 
       <Container maxWidth="sm">
@@ -63,11 +65,9 @@ export default function TrainerPortalLoginPage() {
             <Logo size={36} onDark={true} showTagline={true} />
           </Box>
           <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 26, fontWeight: 700, color: '#FFFFFF', mt: 2 }}>
-            Eğitmen Portalı Girişi
-          </Typography>
+            {siteText("src/pages/TrainerPortalLoginPage.tsx#8f230a4904c8", "Eğitmen Portalı Girişi ")}</Typography>
           <Typography sx={{ fontSize: 14, color: '#A0978E', mt: 0.5 }}>
-            Naillabs akredite eğitmen hesabınızla erişim sağlayın
-          </Typography>
+            {siteText("src/pages/TrainerPortalLoginPage.tsx#1e2f892ce5a6", "Naillabs akredite eğitmen hesabınızla erişim sağlayın ")}</Typography>
         </Box>
 
         <Box
@@ -88,7 +88,7 @@ export default function TrainerPortalLoginPage() {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <TextField
               fullWidth
-              label="E-Posta"
+              label={siteText("src/pages/TrainerPortalLoginPage.tsx#bd0db70c91ba", "E-Posta")}
               size="medium"
               type="email"
               required
@@ -97,7 +97,7 @@ export default function TrainerPortalLoginPage() {
             />
             <TextField
               fullWidth
-              label="Şifre"
+              label={siteText("src/pages/TrainerPortalLoginPage.tsx#e1ac97fff826", "Şifre")}
               size="medium"
               type="password"
               required
@@ -125,15 +125,16 @@ export default function TrainerPortalLoginPage() {
               '&.Mui-disabled': { bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' },
             }}
           >
-            {loading ? <CircularProgress size={22} sx={{ color: '#0E0C0A' }} /> : 'Giriş Yap'}
+            {loading
+              ? <CircularProgress size={22} sx={{ color: '#0E0C0A' }} />
+              : siteText('src/pages/TrainerPortalLoginPage.tsx#submit', 'Giriş Yap')}
           </Button>
         </Box>
 
         <Typography sx={{ textAlign: 'center', mt: 3, fontSize: 13, color: '#888078' }}>
-          Eğitmen değil misiniz?{' '}
+          {siteText("src/pages/TrainerPortalLoginPage.tsx#b85d6c588962", "Eğitmen değil misiniz?")}{' '}
           <Link to="/giris" style={{ color: '#D0B198', textDecoration: 'none', fontWeight: 600 }}>
-            Müşteri Girişi
-          </Link>
+            {siteText("src/pages/TrainerPortalLoginPage.tsx#c3d41dfbab72", "Müşteri Girişi ")}</Link>
         </Typography>
       </Container>
     </Box>

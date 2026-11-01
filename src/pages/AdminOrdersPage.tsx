@@ -1,42 +1,84 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Box, Button, Chip, CircularProgress, Container, Divider, FormControl, MenuItem, Paper,
+  Alert, Box, Button, Chip, CircularProgress, Container, Divider, FormControl, MenuItem, Paper,
   Select, Stack, Typography,
 } from '@mui/material';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
-import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
+import { useAdminAuth } from '../context/AdminAuthContext';
+import { isAdminOrder } from '../lib/adminOrders';
 import type { Order } from '../lib/supabase';
 
 const statusOptions = ['beklemede', 'onaylandı', 'hazırlanıyor', 'kargoda', 'teslim edildi', 'iptal'];
 
 export default function AdminOrdersPage() {
-  const { user, profile, signOut } = useAuth();
+  const { authenticated, loading: authLoading, logout } = useAdminAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) { navigate('/admin/giris'); return; }
-    if (profile && profile.role !== 'admin') { navigate('/'); return; }
-    supabase.from('orders').select('*, order_items(*)').order('created_at', { ascending: false }).then(({ data }) => {
-      setOrders(data || []);
-      setLoading(false);
-    });
-  }, [user, profile, navigate]);
+    if (authLoading) return;
+    if (!authenticated) { navigate('/admin/giris'); return; }
+    fetch('/api/admin/orders', { cache: 'no-store', credentials: 'same-origin' })
+      .then(async (response) => {
+        const body: unknown = await response.json();
+        if (!response.ok) {
+          const message = typeof body === 'object' && body !== null
+            && 'error' in body && typeof body.error === 'string'
+            ? body.error : 'Siparişler yüklenemedi.';
+          throw new Error(message);
+        }
+        if (
+          typeof body !== 'object' || body === null || !('orders' in body)
+          || !Array.isArray(body.orders) || !body.orders.every(isAdminOrder)
+        ) {
+          throw new Error('Sipariş API yanıtı beklenen biçimde değil.');
+        }
+        setOrders(body.orders);
+      })
+      .catch((loadError: unknown) => {
+        setError(loadError instanceof Error ? loadError.message : 'Siparişler yüklenemedi.');
+      })
+      .finally(() => setLoading(false));
+  }, [authenticated, authLoading, navigate]);
 
-  if (!user) return null;
+  if (!authenticated) return null;
 
   const handleStatusChange = async (orderId: string, status: string) => {
-    const { error } = await supabase.from('orders').update({ status, updated_at: new Date().toISOString() }).eq('id', orderId);
-    if (!error) setOrders((current) => current.map((order) => order.id === orderId ? { ...order, status } : order));
+    setError(null);
+    try {
+      const response = await fetch('/api/admin/order-status', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, status }),
+      });
+      const body: unknown = await response.json();
+      if (!response.ok) {
+        const message = typeof body === 'object' && body !== null
+          && 'error' in body && typeof body.error === 'string'
+          ? body.error : 'Sipariş durumu güncellenemedi.';
+        throw new Error(message);
+      }
+      setOrders((current) => current.map((order) => order.id === orderId ? { ...order, status } : order));
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : 'Sipariş durumu güncellenemedi.');
+    }
   };
 
-  const handleSignOut = async () => { await signOut(); navigate('/'); };
+  const handleSignOut = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (logoutError) {
+      setError(logoutError instanceof Error ? logoutError.message : 'Çıkış yapılamadı.');
+    }
+  };
   const pendingCount = orders.filter((order) => order.status === 'beklemede').length;
 
   return (
@@ -52,6 +94,7 @@ export default function AdminOrdersPage() {
           {[
             { label: 'Özet', href: '/admin', icon: <DashboardOutlinedIcon sx={{ fontSize: 17 }} /> },
             { label: 'Ürünler', href: '/admin/urunler', icon: <Inventory2OutlinedIcon sx={{ fontSize: 17 }} /> },
+            { label: 'İçerik düzenle', href: '/admin/icerik', icon: <Inventory2OutlinedIcon sx={{ fontSize: 17 }} /> },
             { label: 'Siparişler', href: '/admin/siparisler', icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 17 }} />, active: true },
           ].map((item) => <Button key={item.href} component={Link} to={item.href} startIcon={item.icon} variant={item.active ? 'contained' : 'outlined'} size="small" sx={{ whiteSpace: 'nowrap' }}>{item.label}</Button>)}
         </Stack>
@@ -61,6 +104,7 @@ export default function AdminOrdersPage() {
           <Chip label={`${pendingCount} yeni`} color="secondary" sx={{ color: 'white', fontWeight: 700 }} />
         </Box>
 
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         {loading ? <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}><CircularProgress color="secondary" /></Box> : orders.length === 0 ? (
           <Paper sx={{ p: 6, textAlign: 'center' }}><WhatsAppIcon sx={{ fontSize: 42, color: 'secondary.main', mb: 1 }} /><Typography color="text.secondary">Henüz WhatsApp siparişi yok.</Typography></Paper>
         ) : (

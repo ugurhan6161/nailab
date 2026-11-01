@@ -1,4 +1,5 @@
 import type { Product } from './supabase';
+import { siteText } from '../context/WebsiteDataContext';
 
 export interface CategoryItem {
   id: string;
@@ -92,6 +93,21 @@ export const BEST_SELLING_CATEGORIES = [
     tag: 'academy',
   },
 ];
+
+export function getCategories(): CategoryItem[] {
+  return CATEGORIES.map((category) => ({
+    ...category,
+    title: siteText(`src/lib/ecommerceData.ts#category.${category.id}.title`, category.title),
+    description: siteText(`src/lib/ecommerceData.ts#category.${category.id}.description`, category.description),
+  }));
+}
+
+export function getBestSellingCategories() {
+  return BEST_SELLING_CATEGORIES.map((category) => ({
+    ...category,
+    title: siteText(`src/lib/ecommerceData.ts#best-selling.${category.id}.title`, category.title),
+  }));
+}
 
 export interface StoreProduct {
   id: string;

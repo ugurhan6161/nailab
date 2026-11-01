@@ -11,6 +11,9 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../context/ProductsContext';
 import { supabase } from '../lib/supabase';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 const WHATSAPP_NUMBER = '908500000000';
 
@@ -102,9 +105,26 @@ export default function CheckoutPage() {
       );
 
       const itemsText = items
-        .map((i) => `• ${i.quantity}x ${i.product.name} - ${(i.product.price * i.quantity).toLocaleString('tr-TR')} ₺`)
+        .map((i) => siteText(
+          'src/pages/CheckoutPage.tsx#whatsapp-item',
+          '• {quantity}x {product} - {price} ₺',
+        )
+          .replace('{quantity}', String(i.quantity))
+          .replace('{product}', i.product.name)
+          .replace('{price}', (i.product.price * i.quantity).toLocaleString('tr-TR')))
         .join('%0A');
-      const msg = `Merhaba, NAILAB web sitenizden yeni bir sipariş verdim:%0A%0A*Sipariş No:* ${order.order_number}%0A*Müşteri:* ${form.name}%0A*Telefon:* ${form.phone}%0A*Adres:* ${form.address}, ${form.district}/${form.city}%0A%0A*Ürünler:*%0A${itemsText}%0A%0A*Toplam Tutar:* ${total.toLocaleString('tr-TR')} ₺`;
+      const msg = siteText(
+        'src/pages/CheckoutPage.tsx#whatsapp-message',
+        'Merhaba, NAILAB web sitenizden yeni bir sipariş verdim:%0A%0A*Sipariş No:* {order_number}%0A*Müşteri:* {customer}%0A*Telefon:* {phone}%0A*Adres:* {address}, {district}/{city}%0A%0A*Ürünler:*%0A{items}%0A%0A*Toplam Tutar:* {total} ₺',
+      )
+        .replace('{order_number}', order.order_number)
+        .replace('{customer}', form.name)
+        .replace('{phone}', form.phone)
+        .replace('{address}', form.address)
+        .replace('{district}', form.district)
+        .replace('{city}', form.city)
+        .replace('{items}', itemsText)
+        .replace('{total}', total.toLocaleString('tr-TR'));
 
       clearCart();
       window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
@@ -135,18 +155,16 @@ export default function CheckoutPage() {
               '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' },
             }}
           >
-            Sepete Dön
-          </Button>
+            {siteText("src/pages/CheckoutPage.tsx#79159c05a39a", "Sepete Dön ")}</Button>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, color: '#D0B198' }}>
             <LockOutlinedIcon sx={{ fontSize: 16 }} />
-            <Typography sx={{ fontSize: '0.82rem', fontWeight: 600 }}>256-Bit SSL Güvenli Ödeme</Typography>
+            <Typography sx={{ fontSize: '0.82rem', fontWeight: 600 }}>{siteText("src/pages/CheckoutPage.tsx#cef3f1c693b6", "256-Bit SSL Güvenli Ödeme")}</Typography>
           </Box>
         </Box>
 
         <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: { xs: 26, md: 36 }, fontWeight: 700, color: '#FFFFFF', mb: 3 }}>
-          Siparişi Tamamla
-        </Typography>
+          {siteText("src/pages/CheckoutPage.tsx#a3df78957fdf", "Siparişi Tamamla ")}</Typography>
 
         {error && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: 3, bgcolor: 'rgba(211,47,47,0.2)', color: '#FF8A80' }}>
@@ -156,10 +174,10 @@ export default function CheckoutPage() {
         {catalogError && (
           <Alert
             severity="error"
-            action={<Button color="inherit" size="small" onClick={refresh}>Yeniden dene</Button>}
+            action={<Button color="inherit" size="small" onClick={refresh}>{siteText("src/pages/CheckoutPage.tsx#1f30ff52f9d5", "Yeniden dene")}</Button>}
             sx={{ mb: 3, borderRadius: 3 }}
           >
-            Güncel ürün fiyatları alınamadı; sipariş oluşturma geçici olarak devre dışı. {catalogError}
+            {siteText("src/pages/CheckoutPage.tsx#0284508024ac", "Güncel ürün fiyatları alınamadı; sipariş oluşturma geçici olarak devre dışı. ")}{catalogError}
           </Alert>
         )}
 
@@ -175,74 +193,67 @@ export default function CheckoutPage() {
               }}
             >
               <Typography sx={{ fontWeight: 700, fontSize: '1.15rem', color: '#FFFFFF', mb: 2.5 }}>
-                Teslimat & İletişim Bilgileri
-              </Typography>
+                {siteText("src/pages/CheckoutPage.tsx#ef8e94b608bf", "Teslimat & İletişim Bilgileri ")}</Typography>
 
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography sx={{ fontSize: '0.82rem', color: '#A0978E', fontWeight: 600, mb: 0.8 }}>
-                    Ad Soyad *
-                  </Typography>
+                    {siteText("src/pages/CheckoutPage.tsx#138ef6e3dd47", "Ad Soyad * ")}</Typography>
                   <TextField
                     fullWidth
-                    placeholder="Adınız Soyadınız"
+                    placeholder={siteText("src/pages/CheckoutPage.tsx#49e5a97ce7df", "Adınız Soyadınız")}
                     value={form.name}
                     onChange={(e) => updateField('name', e.target.value)}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography sx={{ fontSize: '0.82rem', color: '#A0978E', fontWeight: 600, mb: 0.8 }}>
-                    Telefon Numarası *
-                  </Typography>
+                    {siteText("src/pages/CheckoutPage.tsx#6a34c27bb4dc", "Telefon Numarası * ")}</Typography>
                   <TextField
                     fullWidth
-                    placeholder="05XX XXX XX XX"
+                    placeholder={siteText("src/pages/CheckoutPage.tsx#8c9d02847641", "05XX XXX XX XX")}
                     value={form.phone}
                     onChange={(e) => updateField('phone', e.target.value)}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography sx={{ fontSize: '0.82rem', color: '#A0978E', fontWeight: 600, mb: 0.8 }}>
-                    İl *
-                  </Typography>
+                    {siteText("src/pages/CheckoutPage.tsx#7d15def005f1", "İl * ")}</Typography>
                   <TextField
                     fullWidth
-                    placeholder="İstanbul"
+                    placeholder={siteText("src/pages/CheckoutPage.tsx#24ec8f72b5ea", "İstanbul")}
                     value={form.city}
                     onChange={(e) => updateField('city', e.target.value)}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography sx={{ fontSize: '0.82rem', color: '#A0978E', fontWeight: 600, mb: 0.8 }}>
-                    İlçe *
-                  </Typography>
+                    {siteText("src/pages/CheckoutPage.tsx#c89fd672ae54", "İlçe * ")}</Typography>
                   <TextField
                     fullWidth
-                    placeholder="Kadıköy"
+                    placeholder={siteText("src/pages/CheckoutPage.tsx#56cd00ec149b", "Kadıköy")}
                     value={form.district}
                     onChange={(e) => updateField('district', e.target.value)}
                   />
                 </Grid>
                 <Grid size={12}>
                   <Typography sx={{ fontSize: '0.82rem', color: '#A0978E', fontWeight: 600, mb: 0.8 }}>
-                    Açık Adres *
-                  </Typography>
+                    {siteText("src/pages/CheckoutPage.tsx#91d39c45f54c", "Açık Adres * ")}</Typography>
                   <TextField
                     fullWidth
                     multiline
                     rows={3}
-                    placeholder="Cadde, sokak, bina ve daire numarası"
+                    placeholder={siteText("src/pages/CheckoutPage.tsx#629abe81efa8", "Cadde, sokak, bina ve daire numarası")}
                     value={form.address}
                     onChange={(e) => updateField('address', e.target.value)}
                   />
                 </Grid>
                 <Grid size={12}>
                   <Typography sx={{ fontSize: '0.82rem', color: '#A0978E', fontWeight: 600, mb: 0.8 }}>
-                    Sipariş Notu (İsteğe bağlı)
-                  </Typography>
+                    {siteText("src/pages/CheckoutPage.tsx#fd5708748f5b", "Sipariş Notu (İsteğe bağlı) ")}</Typography>
                   <TextField
                     fullWidth
-                    placeholder="Kargo ve teslimat ile ilgili özel notunuz"
+                    placeholder={siteText("src/pages/CheckoutPage.tsx#7e950589fd8d", "Kargo ve teslimat ile ilgili özel notunuz")}
                     value={form.notes}
                     onChange={(e) => updateField('notes', e.target.value)}
                   />
@@ -262,8 +273,7 @@ export default function CheckoutPage() {
               }}
             >
               <Typography sx={{ fontWeight: 700, fontSize: '1.15rem', color: '#FFFFFF', mb: 2 }}>
-                Sipariş Detayı ({items.length} Ürün)
-              </Typography>
+                {siteText("src/pages/CheckoutPage.tsx#4e2c56757684", "Sipariş Detayı (")}{items.length} {siteText("src/pages/CheckoutPage.tsx#675156940cd1", "Ürün) ")}</Typography>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
                 {items.map((i) => (
@@ -279,12 +289,10 @@ export default function CheckoutPage() {
                         {i.product.name}
                       </Typography>
                       <Typography sx={{ fontSize: '0.78rem', color: '#A0978E' }}>
-                        {i.quantity} adet
-                      </Typography>
+                        {i.quantity} {siteText("src/pages/CheckoutPage.tsx#161fe6652531", "adet ")}</Typography>
                     </Box>
                     <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: '#FFFFFF' }}>
-                      {(i.product.price * i.quantity).toLocaleString('tr-TR')} ₺
-                    </Typography>
+                      {(i.product.price * i.quantity).toLocaleString('tr-TR')} {siteText("src/pages/CheckoutPage.tsx#fb0484ae0c37", "₺ ")}</Typography>
                   </Box>
                 ))}
               </Box>
@@ -293,20 +301,21 @@ export default function CheckoutPage() {
 
               <Stack spacing={1} sx={{ mb: 2.5 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', color: '#A0978E', fontSize: 14 }}>
-                  <Typography>Ara Toplam</Typography>
-                  <Typography sx={{ color: '#FFFFFF', fontWeight: 600 }}>{subtotal.toLocaleString('tr-TR')} ₺</Typography>
+                  <Typography>{siteText("src/pages/CheckoutPage.tsx#c680e0e7da71", "Ara Toplam")}</Typography>
+                  <Typography sx={{ color: '#FFFFFF', fontWeight: 600 }}>{subtotal.toLocaleString('tr-TR')} {siteText("src/pages/CheckoutPage.tsx#8416d7938c3d", "₺")}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', color: '#A0978E', fontSize: 14 }}>
-                  <Typography>Kargo</Typography>
+                  <Typography>{siteText("src/pages/CheckoutPage.tsx#d949980d3c64", "Kargo")}</Typography>
                   <Typography sx={{ color: shippingCost === 0 ? '#81C784' : '#FFFFFF', fontWeight: 600 }}>
-                    {shippingCost === 0 ? 'Ücretsiz' : `${shippingCost.toLocaleString('tr-TR')} ₺`}
+                    {shippingCost === 0
+                      ? siteText('src/pages/CheckoutPage.tsx#shipping-free', 'Ücretsiz')
+                      : `${shippingCost.toLocaleString('tr-TR')} ₺`}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 1, alignItems: 'baseline' }}>
-                  <Typography sx={{ fontWeight: 700, fontSize: '1.05rem', color: '#FFFFFF' }}>Ödenecek Tutar</Typography>
+                  <Typography sx={{ fontWeight: 700, fontSize: '1.05rem', color: '#FFFFFF' }}>{siteText("src/pages/CheckoutPage.tsx#7f55e4b20280", "Ödenecek Tutar")}</Typography>
                   <Typography sx={{ fontWeight: 800, fontSize: '1.45rem', color: '#FFFFFF' }}>
-                    {total.toLocaleString('tr-TR')} ₺
-                  </Typography>
+                    {total.toLocaleString('tr-TR')} {siteText("src/pages/CheckoutPage.tsx#fb0484ae0c37", "₺ ")}</Typography>
                 </Box>
               </Stack>
 
@@ -328,14 +337,15 @@ export default function CheckoutPage() {
                   '&:hover': { bgcolor: '#20BA5A' },
                 }}
               >
-                {loading ? 'İşleniyor…' : 'WhatsApp ile Siparişi Onayla'}
+                {loading
+                  ? siteText('src/pages/CheckoutPage.tsx#submitting', 'İşleniyor…')
+                  : siteText('src/pages/CheckoutPage.tsx#submit', 'WhatsApp ile Siparişi Onayla')}
               </Button>
 
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.8, mt: 2.5 }}>
                 <VerifiedIcon sx={{ fontSize: 15, color: '#D0B198' }} />
                 <Typography sx={{ fontSize: '0.75rem', color: '#A0978E', textAlign: 'center' }}>
-                  Siparişiniz doğrudan Naillabs uzman ekibine iletilir.
-                </Typography>
+                  {siteText("src/pages/CheckoutPage.tsx#4a481b872bb6", "Siparişiniz doğrudan Naillabs uzman ekibine iletilir. ")}</Typography>
               </Box>
             </Paper>
           </Grid>

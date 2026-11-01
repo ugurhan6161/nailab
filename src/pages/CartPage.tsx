@@ -9,6 +9,9 @@ import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductsContext';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 const FREE_SHIPPING_THRESHOLD = 1500;
 
@@ -55,11 +58,9 @@ export default function CartPage() {
               color: '#FFFFFF',
             }}
           >
-            Sepetiniz Boş
-          </Typography>
+            {siteText("src/pages/CartPage.tsx#a25848306429", "Sepetiniz Boş ")}</Typography>
           <Typography sx={{ color: 'rgba(255,255,255,0.6)', mt: 1, mb: 4, fontSize: '0.95rem' }}>
-            Henüz sepetinize bir ürün eklemediniz.
-          </Typography>
+            {siteText("src/pages/CartPage.tsx#b9fd34ad6aa8", "Henüz sepetinize bir ürün eklemediniz. ")}</Typography>
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
             <Button
               onClick={() => navigate(-1)}
@@ -74,8 +75,7 @@ export default function CartPage() {
                 '&:hover': { bgcolor: '#F5ECE3' },
               }}
             >
-              Geri Dön
-            </Button>
+              {siteText("src/pages/CartPage.tsx#f3d8f7b1cbca", "Geri Dön ")}</Button>
           </Box>
         </Box>
       </Box>
@@ -105,8 +105,7 @@ export default function CartPage() {
               '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' },
             }}
           >
-            Geri Dön
-          </Button>
+            {siteText("src/pages/CartPage.tsx#f3d8f7b1cbca", "Geri Dön ")}</Button>
         </Box>
 
         <Typography
@@ -118,7 +117,7 @@ export default function CartPage() {
             mb: 3,
           }}
         >
-          Sepetim{' '}
+          {siteText("src/pages/CartPage.tsx#b10cdc1a1f44", "Sepetim")}{' '}
           <Box
             component="span"
             sx={{
@@ -128,17 +127,16 @@ export default function CartPage() {
               fontWeight: 500,
             }}
           >
-            ({itemCount} ürün)
-          </Box>
+            {siteText("src/pages/CartPage.tsx#32ebb1abcc1c", "(")}{itemCount} {siteText("src/pages/CartPage.tsx#a28e8a6da2d1", "ürün) ")}</Box>
         </Typography>
 
         {catalogError && (
           <Alert
             severity="error"
-            action={<Button color="inherit" size="small" onClick={refresh}>Yeniden dene</Button>}
+            action={<Button color="inherit" size="small" onClick={refresh}>{siteText("src/pages/CartPage.tsx#1f30ff52f9d5", "Yeniden dene")}</Button>}
             sx={{ mb: 3 }}
           >
-            Güncel ürün fiyatları alınamadı. Fiyatlar doğrulanana kadar siparişe devam edemezsiniz. {catalogError}
+            {siteText("src/pages/CartPage.tsx#851788d02593", "Güncel ürün fiyatları alınamadı. Fiyatlar doğrulanana kadar siparişe devam edemezsiniz. ")}{catalogError}
           </Alert>
         )}
 
@@ -159,8 +157,14 @@ export default function CartPage() {
           <LocalShippingOutlinedIcon />
           <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
             {remaining > 0
-              ? `${remaining.toLocaleString('tr-TR')} ₺ daha harcayın, ücretsiz kargo kazanın!`
-              : 'Ücretsiz kargo avantajınız aktif!'}
+              ? siteText(
+                'src/pages/CartPage.tsx#free-shipping-progress',
+                '{amount} ₺ daha harcayın, ücretsiz kargo kazanın!',
+              ).replace('{amount}', remaining.toLocaleString('tr-TR'))
+              : siteText(
+                'src/pages/CartPage.tsx#free-shipping-complete',
+                'Ücretsiz kargo avantajınız aktif!',
+              )}
           </Typography>
         </Box>
 
@@ -211,8 +215,7 @@ export default function CartPage() {
                         {item.product.name}
                       </Typography>
                       <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', mt: 0.3 }}>
-                        {item.product.price.toLocaleString('tr-TR')} ₺ / adet
-                      </Typography>
+                        {item.product.price.toLocaleString('tr-TR')} {siteText("src/pages/CartPage.tsx#e1db9e279745", "₺ / adet ")}</Typography>
                       <Box
                         sx={{
                           display: 'flex',
@@ -258,8 +261,7 @@ export default function CartPage() {
                             fontFamily: 'Jost, sans-serif',
                           }}
                         >
-                          {(item.product.price * item.quantity).toLocaleString('tr-TR')} ₺
-                        </Typography>
+                          {(item.product.price * item.quantity).toLocaleString('tr-TR')} {siteText("src/pages/CartPage.tsx#fb0484ae0c37", "₺ ")}</Typography>
                       </Box>
                     </Box>
                     <IconButton
@@ -296,17 +298,15 @@ export default function CartPage() {
                   mb: 3,
                 }}
               >
-                Sipariş Özeti
-              </Typography>
+                {siteText("src/pages/CartPage.tsx#0fd020952874", "Sipariş Özeti ")}</Typography>
               <Stack spacing={1.5}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography sx={{ fontSize: 14, color: 'rgba(255,255,255,0.6)' }}>Ara Toplam</Typography>
+                  <Typography sx={{ fontSize: 14, color: 'rgba(255,255,255,0.6)' }}>{siteText("src/pages/CartPage.tsx#c680e0e7da71", "Ara Toplam")}</Typography>
                   <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#FFFFFF' }}>
-                    {subtotal.toLocaleString('tr-TR')} ₺
-                  </Typography>
+                    {subtotal.toLocaleString('tr-TR')} {siteText("src/pages/CartPage.tsx#fb0484ae0c37", "₺ ")}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography sx={{ fontSize: 14, color: 'rgba(255,255,255,0.6)' }}>Kargo</Typography>
+                  <Typography sx={{ fontSize: 14, color: 'rgba(255,255,255,0.6)' }}>{siteText("src/pages/CartPage.tsx#d949980d3c64", "Kargo")}</Typography>
                   <Typography
                     sx={{
                       fontSize: 14,
@@ -314,7 +314,9 @@ export default function CartPage() {
                       color: shippingCost === 0 ? '#30D158' : '#FFFFFF',
                     }}
                   >
-                    {shippingCost === 0 ? 'Ücretsiz' : `${shippingCost.toLocaleString('tr-TR')} ₺`}
+                    {shippingCost === 0
+                      ? siteText('src/pages/CartPage.tsx#shipping-free', 'Ücretsiz')
+                      : `${shippingCost.toLocaleString('tr-TR')} ₺`}
                   </Typography>
                 </Box>
               </Stack>
@@ -328,8 +330,7 @@ export default function CartPage() {
                     color: '#FFFFFF',
                   }}
                 >
-                  Toplam
-                </Typography>
+                  {siteText("src/pages/CartPage.tsx#c5662180075f", "Toplam ")}</Typography>
                 <Typography
                   sx={{
                     fontFamily: 'Jost, Arial, sans-serif',
@@ -338,8 +339,7 @@ export default function CartPage() {
                     color: '#FFFFFF',
                   }}
                 >
-                  {total.toLocaleString('tr-TR')} ₺
-                </Typography>
+                  {total.toLocaleString('tr-TR')} {siteText("src/pages/CartPage.tsx#fb0484ae0c37", "₺ ")}</Typography>
               </Box>
               <Button
                 fullWidth
@@ -356,8 +356,7 @@ export default function CartPage() {
                   '&:hover': { bgcolor: '#F5ECE3' },
                 }}
               >
-                Sonraki Adıma Geç
-              </Button>
+                {siteText("src/pages/CartPage.tsx#258c96ced92d", "Sonraki Adıma Geç ")}</Button>
               <Button
                 onClick={() => navigate('/magaza')}
                 fullWidth
@@ -368,8 +367,7 @@ export default function CartPage() {
                   '&:hover': { color: '#FFFFFF' },
                 }}
               >
-                Alışverişe Devam Et
-              </Button>
+                {siteText("src/pages/CartPage.tsx#2cbd9c6fb82a", "Alışverişe Devam Et ")}</Button>
             </Paper>
           </Grid>
         </Grid>

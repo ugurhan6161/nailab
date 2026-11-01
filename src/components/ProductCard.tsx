@@ -2,6 +2,9 @@ import { Link } from 'react-router-dom';
 import { Box, Typography, Chip } from '@mui/material';
 import type { Product } from '../lib/supabase';
 import { PRODUCT_NAME } from '../lib/productContent';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 type Props = { product: Product };
 
@@ -46,14 +49,13 @@ export default function ProductCard({ product }: Props) {
                 textAlign: 'center', p: 2, animation: 'ringReveal 700ms ease-out both',
               }}>
                 <Typography variant="caption" sx={{ color: '#60432E', fontWeight: 500, lineHeight: 1.4 }}>
-                  Ürün fotoğrafı<br />admin panelinden<br />eklenecek
-                </Typography>
+                  {siteText("src/components/ProductCard.tsx#392a2419b308", "Ürün fotoğrafı")}<br />{siteText("src/components/ProductCard.tsx#b3ba9ffe13db", "admin panelinden")}<br />{siteText("src/components/ProductCard.tsx#d1ba423534cb", "eklenecek ")}</Typography>
               </Box>
             </Box>
           )}
           {isDemo && (
             <Chip
-              label="Örnek ürün"
+              label={siteText("src/components/ProductCard.tsx#7d39dc7d6dd4", "Örnek ürün")}
               size="small"
               sx={{
                 position: 'absolute', top: 10, left: 10,
@@ -68,12 +70,10 @@ export default function ProductCard({ product }: Props) {
           </Typography>
           {canBuy ? (
             <Typography sx={{ fontWeight: 500, fontSize: '1.05rem', color: '#000000' }}>
-              {product.price.toLocaleString('tr-TR')} ₺
-            </Typography>
+              {product.price.toLocaleString('tr-TR')} {siteText("src/components/ProductCard.tsx#fb0484ae0c37", "₺ ")}</Typography>
           ) : (
             <Typography sx={{ fontSize: '0.8rem', color: '#5E564D' }}>
-              Fiyat ve stok bilgisi admin panelinden girilecek
-            </Typography>
+              {siteText("src/components/ProductCard.tsx#5d9381e1fa2c", "Fiyat ve stok bilgisi admin panelinden girilecek ")}</Typography>
           )}
         </Box>
       </Box>

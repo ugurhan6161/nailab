@@ -1,4 +1,7 @@
 import { Box, Typography } from '@mui/material';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 type Props = {
   size?: number;
@@ -12,7 +15,7 @@ export default function Logo({ size = 32, onDark = false, showTagline = false }:
       <Box
         component="img"
         src="/assets/naillabs/logo.png"
-        alt="NAILAB Logo"
+        alt={siteText("src/components/Logo.tsx#b0eb945b455b", "NAILAB Logo")}
         sx={{
           width: size,
           height: size,
@@ -36,7 +39,7 @@ export default function Logo({ size = 32, onDark = false, showTagline = false }:
             textTransform: 'uppercase',
           }}
         >
-          NAILAB<Box component="span" sx={{ fontSize: '0.7em', color: '#A9876D', ml: 0.2 }}>™</Box>
+          {siteText("src/components/Logo.tsx#907ba98d7a6a", "NAILAB")}<Box component="span" sx={{ fontSize: '0.7em', color: '#A9876D', ml: 0.2 }}>{siteText("src/components/Logo.tsx#c515cbeabf92", "™")}</Box>
         </Typography>
         {showTagline && (
           <Typography
@@ -50,8 +53,7 @@ export default function Logo({ size = 32, onDark = false, showTagline = false }:
               mt: 0.4,
             }}
           >
-            Professional Nail Training System
-          </Typography>
+            {siteText("src/components/Logo.tsx#d1a49c3c18eb", "Professional Nail Training System ")}</Typography>
         )}
       </Box>
     </Box>

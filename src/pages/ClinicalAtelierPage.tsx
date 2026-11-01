@@ -4,6 +4,9 @@ import ScienceOutlinedIcon from '@mui/icons-material/ScienceOutlined';
 import BiotechOutlinedIcon from '@mui/icons-material/BiotechOutlined';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Link } from 'react-router-dom';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 const features = [
   {
@@ -24,6 +27,11 @@ const features = [
 ];
 
 export default function ClinicalAtelierPage() {
+  const editableFeatures = features.map((feature, index) => ({
+    ...feature,
+    title: siteText(`src/pages/ClinicalAtelierPage.tsx#feature.${index}.title`, feature.title),
+    desc: siteText(`src/pages/ClinicalAtelierPage.tsx#feature.${index}.description`, feature.desc),
+  }));
   return (
     <Box sx={{ bgcolor: '#0E0C0A', color: '#FFFFFF', minHeight: '85vh' }}>
       {/* Hero */}
@@ -40,7 +48,7 @@ export default function ClinicalAtelierPage() {
           <Grid container spacing={6} alignItems="center">
             <Grid size={{ xs: 12, md: 6 }}>
               <Chip
-                label="NAILLABS KLİNİK & ATÖLYE"
+                label={siteText("src/pages/ClinicalAtelierPage.tsx#4df0379756c1", "NAILLABS KLİNİK & ATÖLYE")}
                 sx={{
                   bgcolor: 'rgba(208, 177, 152, 0.1)',
                   color: '#D0B198',
@@ -52,11 +60,9 @@ export default function ClinicalAtelierPage() {
                 }}
               />
               <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: { xs: 30, md: 44 }, fontWeight: 700, color: '#FFFFFF', mb: 2.5, lineHeight: 1.2 }}>
-                Tırnak Tasarımının Bilimsel ve Klinik Yüzü
-              </Typography>
+                {siteText("src/pages/ClinicalAtelierPage.tsx#da9723102e40", "Tırnak Tasarımının Bilimsel ve Klinik Yüzü ")}</Typography>
               <Typography sx={{ fontSize: 16, color: '#A0978E', lineHeight: 1.8, mb: 4, maxWidth: 500 }}>
-                Naillabs Klinik Atölye, tırnak anatomisi ve freze mühendisliğini bir araya getirerek salon profesyonelleri ve eğitmenler için en yüksek standartlarda donanım geliştirir.
-              </Typography>
+                {siteText("src/pages/ClinicalAtelierPage.tsx#a9d03b5a3fde", "Naillabs Klinik Atölye, tırnak anatomisi ve freze mühendisliğini bir araya getirerek salon profesyonelleri ve eğitmenler için en yüksek standartlarda donanım geliştirir. ")}</Typography>
               <Button
                 variant="contained"
                 size="large"
@@ -73,14 +79,13 @@ export default function ClinicalAtelierPage() {
                   '&:hover': { bgcolor: '#E2C7B0' },
                 }}
               >
-                Klinik Ürünleri İncele
-              </Button>
+                {siteText("src/pages/ClinicalAtelierPage.tsx#cdc98cc82ad5", "Klinik Ürünleri İncele ")}</Button>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <Box
                 component="img"
                 src="/assets/naillabs/screen.png"
-                alt="Naillabs Klinik Atölye"
+                alt={siteText("src/pages/ClinicalAtelierPage.tsx#6693506d9431", "Naillabs Klinik Atölye")}
                 sx={{
                   width: '100%',
                   height: 380,
@@ -100,7 +105,7 @@ export default function ClinicalAtelierPage() {
       {/* Features */}
       <Container maxWidth="lg" sx={{ py: { xs: 8, md: 12 } }}>
         <Grid container spacing={3.5}>
-          {features.map((feat, i) => (
+          {editableFeatures.map((feat, i) => (
             <Grid size={{ xs: 12, md: 4 }} key={i}>
               <Card
                 sx={{

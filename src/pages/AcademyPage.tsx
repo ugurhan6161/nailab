@@ -9,6 +9,9 @@ import StarBorderIcon from '@mui/icons-material/StarBorder';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { supabase } from '../lib/supabase';
 import type { AcademyCourse } from '../lib/supabase';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 const instructors = [
   { name: 'Dr. Ayşe Kaya', title: 'Tırnak Anatomisi Uzmanı', img: 'https://images.pexels.com/photos/5215024/pexels-photo-5215024.jpeg' },
@@ -21,6 +24,11 @@ export default function AcademyPage() {
   const navigate = useNavigate();
   const [courses, setCourses] = useState<AcademyCourse[]>([]);
   const [loading, setLoading] = useState(true);
+  const editableInstructors = instructors.map((instructor, index) => ({
+    ...instructor,
+    name: siteText(`src/pages/AcademyPage.tsx#instructor.${index}.name`, instructor.name),
+    title: siteText(`src/pages/AcademyPage.tsx#instructor.${index}.title`, instructor.title),
+  }));
 
   useEffect(() => {
     supabase.from('academy_courses').select('*').eq('is_active', true).order('created_at', { ascending: false }).then(({ data }) => {
@@ -50,16 +58,13 @@ export default function AcademyPage() {
                 '&:hover': { color: '#D0B198' },
               }}
             >
-              Mağazaya Geri Dön
-            </Button>
+              {siteText("src/pages/AcademyPage.tsx#773eca0282d2", "Mağazaya Geri Dön ")}</Button>
           </Box>
-          <Chip label="NAILLABS AKADEMİ" sx={{ bgcolor: 'rgba(208,177,152,0.15)', color: '#D0B198', mb: 2, border: '1px solid rgba(208,177,152,0.3)', fontWeight: 700 }} />
+          <Chip label={siteText("src/pages/AcademyPage.tsx#e824ee7d8cab", "NAILLABS AKADEMİ")} sx={{ bgcolor: 'rgba(208,177,152,0.15)', color: '#D0B198', mb: 2, border: '1px solid rgba(208,177,152,0.3)', fontWeight: 700 }} />
           <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: { xs: 32, md: 48 }, fontWeight: 700, color: '#FFFFFF', mb: 2, lineHeight: 1.2 }}>
-            Profesyonel Tırnak Eğitimleri
-          </Typography>
+            {siteText("src/pages/AcademyPage.tsx#537b9f00bdb3", "Profesyonel Tırnak Eğitimleri ")}</Typography>
           <Typography sx={{ fontSize: 16, color: '#A0978E', maxWidth: 560, mx: 'auto', lineHeight: 1.8 }}>
-            Patentli anatomik eğitim parmakları ve klinik ekipmanlarımızla desteklenen sertifikalı master kursları.
-          </Typography>
+            {siteText("src/pages/AcademyPage.tsx#2a2e13e45fc9", "Patentli anatomik eğitim parmakları ve klinik ekipmanlarımızla desteklenen sertifikalı master kursları. ")}</Typography>
         </Container>
       </Box>
 
@@ -67,16 +72,14 @@ export default function AcademyPage() {
       <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
         <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Typography sx={{ fontSize: 12, color: '#D0B198', fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', mb: 1 }}>
-            Kurs Programları
-          </Typography>
+            {siteText("src/pages/AcademyPage.tsx#7cbdc74bc935", "Kurs Programları ")}</Typography>
           <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: { xs: 26, md: 36 }, fontWeight: 700, color: '#FFFFFF' }}>
-            Aktif Eğitimlerimiz
-          </Typography>
+            {siteText("src/pages/AcademyPage.tsx#0e504a647044", "Aktif Eğitimlerimiz ")}</Typography>
         </Box>
 
         <Grid container spacing={4}>
           {loading ? (
-            <Box sx={{ width: '100%', textAlign: 'center', py: 8 }}><Typography color="#A0978E">Yükleniyor...</Typography></Box>
+            <Box sx={{ width: '100%', textAlign: 'center', py: 8 }}><Typography color="#A0978E">{siteText("src/pages/AcademyPage.tsx#b2b464d79ad6", "Yükleniyor...")}</Typography></Box>
           ) : (
             courses.map(course => (
               <Grid size={{ xs: 12, md: 6 }} key={course.id}>
@@ -108,8 +111,7 @@ export default function AcademyPage() {
                         <Typography sx={{ fontSize: 13, color: '#FFFFFF' }}>{course.instructor}</Typography>
                       </Box>
                       <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontWeight: 700, fontSize: 20, color: '#D0B198' }}>
-                        {course.price.toLocaleString('tr-TR')} ₺
-                      </Typography>
+                        {course.price.toLocaleString('tr-TR')} {siteText("src/pages/AcademyPage.tsx#fb0484ae0c37", "₺ ")}</Typography>
                     </Box>
                   </CardContent>
                 </Card>
@@ -124,14 +126,12 @@ export default function AcademyPage() {
         <Container maxWidth="lg">
           <Box sx={{ textAlign: 'center', mb: 6 }}>
             <Typography sx={{ fontSize: 12, color: '#D0B198', fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', mb: 1 }}>
-              Eğitmen Kadromuz
-            </Typography>
+              {siteText("src/pages/AcademyPage.tsx#a8d0304be0d2", "Eğitmen Kadromuz ")}</Typography>
             <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: { xs: 26, md: 36 }, fontWeight: 700, color: '#FFFFFF' }}>
-              Alanında Uzman Eğitmenler
-            </Typography>
+              {siteText("src/pages/AcademyPage.tsx#774425edc955", "Alanında Uzman Eğitmenler ")}</Typography>
           </Box>
           <Grid container spacing={3}>
-            {instructors.map(inst => (
+            {editableInstructors.map(inst => (
               <Grid size={{ xs: 6, md: 3 }} key={inst.name}>
                 <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#14110E', borderRadius: 3, border: '1px solid rgba(255,255,255,0.06)' }}>
                   <Box component="img" src={inst.img} alt={inst.name}
@@ -150,18 +150,15 @@ export default function AcademyPage() {
         <Container maxWidth="md" sx={{ textAlign: 'center' }}>
           <StarBorderIcon sx={{ fontSize: 48, color: '#D0B198', mb: 1 }} />
           <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: { xs: 26, md: 36 }, fontWeight: 700, color: '#FFFFFF', mb: 2 }}>
-            Uluslararası Onaylı Sertifika
-          </Typography>
+            {siteText("src/pages/AcademyPage.tsx#033eae8086cd", "Uluslararası Onaylı Sertifika ")}</Typography>
           <Typography sx={{ fontSize: 15, color: '#A0978E', lineHeight: 1.8, mb: 4, maxWidth: 600, mx: 'auto' }}>
-            Naillabs Akademi eğitimlerini başarıyla tamamlayan katılımcılara karekodlu, uluslararası geçerliliğe sahip sertifika takdim edilmektedir.
-          </Typography>
+            {siteText("src/pages/AcademyPage.tsx#354816579fd0", "Naillabs Akademi eğitimlerini başarıyla tamamlayan katılımcılara karekodlu, uluslararası geçerliliğe sahip sertifika takdim edilmektedir. ")}</Typography>
           <Button
             variant="contained"
             onClick={() => navigate('/iletisim')}
             sx={{ bgcolor: '#D0B198', color: '#0E0C0A', fontWeight: 700, px: 5, py: 1.6, borderRadius: 999, '&:hover': { bgcolor: '#EED2BC' } }}
           >
-            Ön Kayıt Başvurusu
-          </Button>
+            {siteText("src/pages/AcademyPage.tsx#5328c36c8b92", "Ön Kayıt Başvurusu ")}</Button>
         </Container>
       </Box>
     </Box>

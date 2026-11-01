@@ -10,6 +10,9 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import type { Notification } from '../lib/supabase';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 export default function NotificationsPage() {
   const { user } = useAuth();
@@ -48,16 +51,14 @@ export default function NotificationsPage() {
       <Container maxWidth="md">
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
           <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: { xs: 26, md: 36 }, fontWeight: 700, color: '#FFFFFF' }}>
-            Bildirimler
-          </Typography>
+            {siteText("src/pages/NotificationsPage.tsx#63ee74898a55", "Bildirimler ")}</Typography>
           {notifications.some((n) => !n.is_read) && (
             <Button
               onClick={handleMarkAllRead}
               size="small"
               sx={{ color: '#D0B198', border: '1px solid rgba(208, 177, 152, 0.3)', borderRadius: 999 }}
             >
-              Tümünü Okundu İşaretle
-            </Button>
+              {siteText("src/pages/NotificationsPage.tsx#ff3b90c9346f", "Tümünü Okundu İşaretle ")}</Button>
           )}
         </Box>
 
@@ -67,8 +68,8 @@ export default function NotificationsPage() {
           </Box>
         ) : notifications.length === 0 ? (
           <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 3, bgcolor: '#14110E', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-            <Typography sx={{ fontSize: 40, mb: 1.5 }}>🔔</Typography>
-            <Typography sx={{ color: '#A0978E', fontSize: 16 }}>Henüz yeni bir bildiriminiz bulunmuyor.</Typography>
+            <Typography sx={{ fontSize: 40, mb: 1.5 }}>{siteText("src/pages/NotificationsPage.tsx#3ee9a9d6f044", "🔔")}</Typography>
+            <Typography sx={{ color: '#A0978E', fontSize: 16 }}>{siteText("src/pages/NotificationsPage.tsx#566585027cc1", "Henüz yeni bir bildiriminiz bulunmuyor.")}</Typography>
           </Paper>
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -106,7 +107,7 @@ export default function NotificationsPage() {
                       <Typography sx={{ fontWeight: 600, fontSize: 15, color: '#FFFFFF' }}>{n.title}</Typography>
                       {!n.is_read && (
                         <Chip
-                          label="Yeni"
+                          label={siteText("src/pages/NotificationsPage.tsx#e17ccb1e9466", "Yeni")}
                           size="small"
                           sx={{ bgcolor: '#D0B198', color: '#0E0C0A', fontSize: 10, height: 20, fontWeight: 700 }}
                         />

@@ -9,6 +9,9 @@ import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import type { AcademyCourse } from '../lib/supabase';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 export default function TrainerPortalPage() {
   const { user, profile, signOut } = useAuth();
@@ -35,20 +38,22 @@ export default function TrainerPortalPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
           <Box>
             <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: { xs: 24, md: 32 }, fontWeight: 700, color: '#000000' }}>
-              Eğitmen Portalı
+              {siteText("src/pages/TrainerPortalPage.tsx#e34c56676cb8", "Eğitmen Portalı ")}</Typography>
+            <Typography sx={{ fontSize: 14, color: '#5E564D' }}>
+              {siteText("src/pages/TrainerPortalPage.tsx#16e58b1f7e0d", "Hoş geldiniz, ")}
+              {profile?.full_name || siteText('src/pages/TrainerPortalPage.tsx#fallback-name', 'Eğitmen')}
             </Typography>
-            <Typography sx={{ fontSize: 14, color: '#5E564D' }}>Hoş geldiniz, {profile?.full_name || 'Eğitmen'}</Typography>
           </Box>
-          <Button onClick={handleSignOut} variant="outlined" sx={{ borderColor: '#A9876D', color: '#A9876D', borderRadius: 2 }}>Çıkış Yap</Button>
+          <Button onClick={handleSignOut} variant="outlined" sx={{ borderColor: '#A9876D', color: '#A9876D', borderRadius: 2 }}>{siteText("src/pages/TrainerPortalPage.tsx#283092d12a56", "Çıkış Yap")}</Button>
         </Box>
 
         {/* Stats */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           {[
-            { icon: <VideoLibraryOutlinedIcon />, num: courses.length, label: 'Aktif Kurs', color: '#A9876D' },
-            { icon: <GroupOutlinedIcon />, num: '1.247', label: 'Toplam Öğrenci', color: '#3DA56F' },
-            { icon: <StarBorderIcon />, num: '4.8', label: 'Ortalama Puan', color: '#B8924A' },
-            { icon: <StarBorderIcon />, num: '₺48K', label: 'Aylık Gelir', color: '#3A7BD5' },
+            { icon: <VideoLibraryOutlinedIcon />, num: courses.length, label: siteText('src/pages/TrainerPortalPage.tsx#stat.active-courses', 'Aktif Kurs'), color: '#A9876D' },
+            { icon: <GroupOutlinedIcon />, num: '1.247', label: siteText('src/pages/TrainerPortalPage.tsx#stat.total-students', 'Toplam Öğrenci'), color: '#3DA56F' },
+            { icon: <StarBorderIcon />, num: '4.8', label: siteText('src/pages/TrainerPortalPage.tsx#stat.average-rating', 'Ortalama Puan'), color: '#B8924A' },
+            { icon: <StarBorderIcon />, num: '₺48K', label: siteText('src/pages/TrainerPortalPage.tsx#stat.monthly-income', 'Aylık Gelir'), color: '#3A7BD5' },
           ].map((s, i) => (
             <Grid size={{ xs: 6, md: 3 }} key={i}>
               <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid rgba(201,149,106,0.15)' }}>
@@ -63,8 +68,7 @@ export default function TrainerPortalPage() {
         {/* Courses */}
         <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid rgba(201,149,106,0.15)' }}>
           <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 20, fontWeight: 700, color: '#000000', mb: 3 }}>
-            Kurslarım
-          </Typography>
+            {siteText("src/pages/TrainerPortalPage.tsx#a8bee54ee0f5", "Kurslarım ")}</Typography>
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress sx={{ color: '#A9876D' }} /></Box>
           ) : (
@@ -74,13 +78,12 @@ export default function TrainerPortalPage() {
                   <Box component="img" src={c.image_url} alt={c.title} sx={{ width: 60, height: 60, borderRadius: 2, objectFit: 'cover' }} />
                   <Box sx={{ flex: 1, minWidth: 150 }}>
                     <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontWeight: 600, fontSize: 15, color: '#000000' }}>{c.title}</Typography>
-                    <Typography sx={{ fontSize: 12, color: '#5E564D' }}>{c.duration} · {c.level}</Typography>
+                    <Typography sx={{ fontSize: 12, color: '#5E564D' }}>{c.duration} {siteText("src/pages/TrainerPortalPage.tsx#6e01f78b9eb4", "· ")}{c.level}</Typography>
                   </Box>
-                  <Chip label="Aktif" size="small" sx={{ bgcolor: '#E8F5E9', color: '#3DA56F', fontWeight: 600, fontSize: 11 }} />
+                  <Chip label={siteText("src/pages/TrainerPortalPage.tsx#d5f884547452", "Aktif")} size="small" sx={{ bgcolor: '#E8F5E9', color: '#3DA56F', fontWeight: 600, fontSize: 11 }} />
                   <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontWeight: 700, fontSize: 16, color: '#000000' }}>
-                    {c.price.toLocaleString('tr-TR')} ₺
-                  </Typography>
-                  <Button size="small" variant="outlined" sx={{ borderColor: '#A9876D', color: '#A9876D', fontSize: 12 }}>Yönet</Button>
+                    {c.price.toLocaleString('tr-TR')} {siteText("src/pages/TrainerPortalPage.tsx#fb0484ae0c37", "₺ ")}</Typography>
+                  <Button size="small" variant="outlined" sx={{ borderColor: '#A9876D', color: '#A9876D', fontSize: 12 }}>{siteText("src/pages/TrainerPortalPage.tsx#e92f6f072935", "Yönet")}</Button>
                 </Box>
               ))}
             </Box>

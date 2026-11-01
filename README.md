@@ -4,19 +4,29 @@ This template provides a minimal setup to get React working in Vite with HMR and
 
 ## Vercel Global Config ile ürün kataloğu
 
-Mağaza ürünleri ve fiyatları, Global Config deposundaki `products` anahtarından okunur. Tarayıcı Global Config bağlantı bilgisini görmez; `api/products.ts` bu veriyi sunucu tarafında `/api/products` üzerinden sunar. Admin ürün ekranı aynı kataloğu gösterir; ürün ekleme, silme ve fiyat güncelleme Vercel panelinden yapılır.
+Mağaza ürünleri ve fiyatları, Global Config deposundaki `products` anahtarından okunur. Tarayıcı Global Config bağlantı bilgisini görmez; `api/products.ts` bu veriyi sunucu tarafında `/api/products` üzerinden sunar. Admin panelindeki içerik düzenleyici ürünleri, fiyatları ve müşteri ekranı metinlerini düzenler; kaydetme işlemi Vercel Global Config'i günceller.
 
 ### Vercel kurulumu
 
 1. Vercel projesinde `nailab-global-config` deposunu projeye bağlayın. Proje ortam değişkenlerinde `GLOBAL_CONFIG` veya `EDGE_CONFIG` bağlantı değişkeninin oluştuğunu doğrulayın. Değişkeni `VITE_` önekiyle eklemeyin.
-2. Global Config düzenleyicisindeki JSON nesnesinin tamamını [`config/products.json`](./config/products.json) ile değiştirin. En üst düzey değer `{ "products": [...] }` biçiminde bir nesne olmalıdır; tek başına ürün dizisi (`[...]`) kabul edilmez. Başlangıç kataloğu mevcut 8 mağaza ürününü içerir.
-3. Kaydedin ve uygulamanın bir deployment'ını yayınlayın. Sonraki fiyat/ürün güncellemeleri için Global Config'teki `products` dizisini düzenleyip kaydetmeniz yeterlidir; yeni deployment gerekmez. Mağazayı yenileyerek güncel kataloğu alın.
+2. Global Config düzenleyicisindeki JSON nesnesini [`config/global-config.json`](./config/global-config.json) içeriğiyle başlatın. En üst düzey değer nesne olmalı ve `products` ile `websiteData` anahtarlarını birlikte içermelidir. `websiteData.copy`, müşteri sayfalarındaki metinlerin başlangıç değerlerini içerir.
+3. Vercel projesinin Environment Variables bölümünde aşağıdaki değişkenleri Preview ve Production ortamlarına ekleyin:
+   - `ADMIN_EMAIL`: yönetici giriş e-postası.
+   - `ADMIN_PASSWORD`: yönetici giriş şifresi.
+   - `ADMIN_SESSION_SECRET`: en az 32 baytlık rastgele bir gizli değer. Yerel makinede `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` ile üretilebilir.
+   - `VERCEL_TOKEN`: Global Config'i okuma/yazma yetkisi olan Vercel erişim token'ı.
+   - `VERCEL_GLOBAL_CONFIG_ID`: Global Config ID'si (bu depo için `ecfg_hsu4rkyec8wyol2atp0qpslpy21g`).
+   - `VERCEL_TEAM_ID`: proje bir Vercel takımına bağlıysa takım ID'si.
+   - `SUPABASE_SERVICE_ROLE_KEY`: admin sipariş ekranının sunucu tarafında Supabase'e erişmesi için Service Role key'i. **Bu değişkeni `VITE_` önekiyle tanımlamayın.**
+   - `GLOBAL_CONFIG` (veya `EDGE_CONFIG`): Vercel'in Global Config bağlantı değişkeni.
+4. `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `VERCEL_TOKEN` ve `SUPABASE_SERVICE_ROLE_KEY` yalnızca sunucu ortam değişkenleri olmalıdır; bunları kaynak koda veya `VITE_` değişkenlerine koymayın. Değişkenleri ekledikten sonra yeni bir deployment yayınlayın.
+5. `/admin/giris` adresinden `ADMIN_EMAIL` ve `ADMIN_PASSWORD` ile giriş yapın. HttpOnly oturum çerezi sunucu tarafından imzalanır. `/admin/icerik` ekranında ürün ekleyip düzenleyebilir/silebilir, site metinlerini sayfa adına göre arayıp düzenleyebilir ve tüm değişiklikleri tek seferde kaydedebilirsiniz. Kaydetme yeni bir deployment gerektirmez.
 
 Her ürün için `id`, `title`, `category`, `price`, `image` ve `description` alanları zorunludur. `price` sayı olarak TL tutarıdır (ör. `1250`); `rating`, `reviews`, `stock`, `badge` ve `isNew` isteğe bağlıdır. `stock` verilmezse 50 kabul edilir. Ürün kimlikleri benzersiz olmalıdır.
 
 ### Yerel geliştirme
 
-Vercel CLI ile projeyi bağladıktan sonra `vercel env pull .env.local` komutuyla `GLOBAL_CONFIG` veya `EDGE_CONFIG` değişkenini alın ve `npm run dev` çalıştırın. `.env.local` dosyasını repoya eklemeyin. Bu değişken yoksa katalog sahte/statik fiyatlarla gösterilmez; API açık bir yapılandırma hatası verir.
+Vercel CLI ile projeyi bağladıktan sonra `vercel env pull .env.local` komutuyla gerekli değişkenleri alın ve `vercel dev` çalıştırın; Vite'ın tek başına geliştirme sunucusu `/api` serverless fonksiyonlarını çalıştırmaz. `.env.local` dosyasını repoya eklemeyin. Ürün API'si yapılandırma hatalarında sahte fiyatlar göstermek yerine açık hata verir.
 
 Currently, two official plugins are available:
 

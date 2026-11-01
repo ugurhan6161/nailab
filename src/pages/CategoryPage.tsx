@@ -21,15 +21,19 @@ import { useWishlist } from '../context/WishlistContext';
 import { useFlyAnimation } from '../context/FlyAnimationContext';
 import { useProducts } from '../context/ProductsContext';
 import {
-  CATEGORIES, getCategoryProducts,
+  getCategories, getCategoryProducts,
   toAppProduct, type StoreProduct,
 } from '../lib/ecommerceData';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 export default function CategoryPage() {
   const { category = 'kits' } = useParams<{ category: string }>();
   const navigate = useNavigate();
   const { itemCount, addToCart, isInCart } = useCart();
   const { wishlistIds, toggleWishlist, wishlistProducts } = useWishlist();
+  const categories = getCategories();
   const { products: storeProducts, loading: catalogLoading, error: catalogError, refresh } = useProducts();
   const {
     registerWishlistTarget,
@@ -66,14 +70,14 @@ export default function CategoryPage() {
     }, 350);
   };
 
-  const matchedCategory = CATEGORIES.find(
+  const matchedCategory = categories.find(
     (c) => c.tag.toLowerCase() === category.toLowerCase()
   );
 
   const title = matchedCategory
     ? matchedCategory.title
     : category === 'all'
-    ? 'Tüm Ürünler'
+    ? siteText('src/pages/CategoryPage.tsx#title.all', 'Tüm Ürünler')
     : category.charAt(0).toUpperCase() + category.slice(1);
 
   const heroImage = matchedCategory ? matchedCategory.image : '/assets/naillabs/screen-1.png';
@@ -100,7 +104,8 @@ export default function CategoryPage() {
 
     flyToCart(e.currentTarget, sp.image);
     addToCart(toAppProduct(sp), 1);
-    setToastMessage(`"${sp.title}" sepete eklendi!`);
+    setToastMessage(siteText('src/pages/CategoryPage.tsx#cart-added', '"{product}" sepete eklendi!')
+      .replace('{product}', sp.title));
   };
 
   const handleWishlistCartClick = (e: React.MouseEvent<HTMLButtonElement>, sp: StoreProduct) => {
@@ -110,7 +115,8 @@ export default function CategoryPage() {
 
     flyToCart(e.currentTarget, sp.image);
     addToCart(toAppProduct(sp), 1);
-    setToastMessage(`"${sp.title}" sepete eklendi!`);
+    setToastMessage(siteText('src/pages/CategoryPage.tsx#cart-added', '"{product}" sepete eklendi!')
+      .replace('{product}', sp.title));
   };
 
   const filteredSearchProducts = storeProducts.filter(
@@ -270,7 +276,7 @@ export default function CategoryPage() {
                   ref={registerCartTarget}
                   component={Link}
                   to="/sepet"
-                  aria-label="Sepet"
+                  aria-label={siteText("src/pages/CategoryPage.tsx#034fe767aac7", "Sepet")}
                   sx={{
                     width: 38,
                     height: 38,
@@ -383,9 +389,8 @@ export default function CategoryPage() {
               '&:hover': { bgcolor: category === 'all' ? '#222222' : 'rgba(0,0,0,0.08)' },
             }}
           >
-            Tümü
-          </Button>
-          {CATEGORIES.map((cat) => {
+            {siteText("src/pages/CategoryPage.tsx#83807e68d689", "Tümü ")}</Button>
+          {categories.map((cat) => {
             const active = cat.tag.toLowerCase() === category.toLowerCase();
             return (
               <Button
@@ -437,8 +442,7 @@ export default function CategoryPage() {
                 fontFamily: 'Jost, sans-serif',
               }}
             >
-              Yeni Ürünler
-            </Typography>
+              {siteText("src/pages/CategoryPage.tsx#47481167e685", "Yeni Ürünler ")}</Typography>
 
             <Box
               component={Link}
@@ -454,8 +458,7 @@ export default function CategoryPage() {
               }}
             >
               <Typography sx={{ fontSize: 14, color: '#888888' }}>
-                Tümünü Gör
-              </Typography>
+                {siteText("src/pages/CategoryPage.tsx#d0d594c901b9", "Tümünü Gör ")}</Typography>
               <ArrowForwardIosIcon sx={{ fontSize: 11, color: '#888888' }} />
             </Box>
           </Box>
@@ -464,7 +467,7 @@ export default function CategoryPage() {
           {catalogError && (
             <Alert
               severity="error"
-              action={<Button color="inherit" size="small" onClick={refresh}>Tekrar dene</Button>}
+              action={<Button color="inherit" size="small" onClick={refresh}>{siteText("src/pages/CategoryPage.tsx#0ce9380b07f8", "Tekrar dene")}</Button>}
               sx={{ mb: 2 }}
             >
               {catalogError}
@@ -643,16 +646,14 @@ export default function CategoryPage() {
             size="small"
             sx={{ color: '#000000', fontWeight: 600, fontSize: 13 }}
           >
-            ← Geri Dön
-          </Button>
+            {siteText("src/pages/CategoryPage.tsx#84b873fd4332", "← Geri Dön ")}</Button>
           <Button
             onClick={() => setWishlistOpen(true)}
             size="small"
             startIcon={<FavoriteIcon sx={{ color: '#FF3B30', fontSize: 16 }} />}
             sx={{ color: '#000000', fontWeight: 600, fontSize: 13 }}
           >
-            Favoriler ({wishlistIds.length})
-          </Button>
+            {siteText("src/pages/CategoryPage.tsx#969a14839d4a", "Favoriler (")}{wishlistIds.length}{siteText("src/pages/CategoryPage.tsx#daac4fe11107", ") ")}</Button>
           <Button
             component={Link}
             to="/sepet"
@@ -671,8 +672,7 @@ export default function CategoryPage() {
               '&:hover': { bgcolor: '#222222' },
             }}
           >
-            Sepet ({itemCount})
-          </Button>
+            {siteText("src/pages/CategoryPage.tsx#30d142f65b04", "Sepet (")}{itemCount}{siteText("src/pages/CategoryPage.tsx#daac4fe11107", ") ")}</Button>
         </Box>
       </Box>
 
@@ -693,8 +693,7 @@ export default function CategoryPage() {
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography sx={{ fontSize: 20, fontWeight: 700, color: '#FFFFFF' }}>
-            Favorilerim ({wishlistProducts.length})
-          </Typography>
+            {siteText("src/pages/CategoryPage.tsx#31231835f710", "Favorilerim (")}{wishlistProducts.length}{siteText("src/pages/CategoryPage.tsx#daac4fe11107", ") ")}</Typography>
           <IconButton onClick={() => setWishlistOpen(false)} sx={{ color: '#FFFFFF' }}>
             <CloseIcon />
           </IconButton>
@@ -703,7 +702,7 @@ export default function CategoryPage() {
         {wishlistProducts.length === 0 ? (
           <Box sx={{ py: 8, textAlign: 'center' }}>
             <FavoriteBorderIcon sx={{ fontSize: 44, color: '#777777', mb: 1.5 }} />
-            <Typography sx={{ color: 'rgba(255,255,255,0.6)' }}>Favorilere henüz ürün eklemediniz.</Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,0.6)' }}>{siteText("src/pages/CategoryPage.tsx#22aeabaeab2e", "Favorilere henüz ürün eklemediniz.")}</Typography>
           </Box>
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
@@ -761,8 +760,7 @@ export default function CategoryPage() {
                           '&:hover': { bgcolor: '#D0B198', color: '#000000' },
                         }}
                       >
-                        Sepete Git
-                      </Button>
+                        {siteText("src/pages/CategoryPage.tsx#e79de8f9b463", "Sepete Git ")}</Button>
                     )}
                   </Box>
                   <IconButton
@@ -814,7 +812,7 @@ export default function CategoryPage() {
         }}
       >
         <DialogTitle sx={{ p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography sx={{ fontWeight: 700, fontSize: 18, color: '#FFFFFF' }}>Naillabs Ürünlerinde Ara</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: 18, color: '#FFFFFF' }}>{siteText("src/pages/CategoryPage.tsx#68a2db4f559f", "Naillabs Ürünlerinde Ara")}</Typography>
           <IconButton size="small" onClick={() => setSearchOpen(false)} sx={{ color: '#FFFFFF' }}>
             <CloseIcon />
           </IconButton>
@@ -823,7 +821,7 @@ export default function CategoryPage() {
           <TextField
             autoFocus
             fullWidth
-            placeholder="Eğitim Kiti, Freze Ucu, Form..."
+            placeholder={siteText("src/pages/CategoryPage.tsx#ddadee218e4b", "Eğitim Kiti, Freze Ucu, Form...")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{
@@ -905,8 +903,7 @@ export default function CategoryPage() {
                 '&:hover': { color: '#FFFFFF' },
               }}
             >
-              Sepeti Gör
-            </Button>
+              {siteText("src/pages/CategoryPage.tsx#437db4fb0e67", "Sepeti Gör ")}</Button>
           }
           sx={{
             width: '100%',

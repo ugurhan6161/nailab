@@ -12,6 +12,9 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import { useAuth } from '../context/AuthContext';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 export default function AuthPage() {
   const { signIn, signUp } = useAuth();
@@ -128,8 +131,7 @@ export default function AuthPage() {
               },
             }}
           >
-            Geri Dön
-          </Button>
+            {siteText("src/pages/AuthPage.tsx#f3d8f7b1cbca", "Geri Dön ")}</Button>
 
           <Button
             component={Link}
@@ -142,8 +144,7 @@ export default function AuthPage() {
               '&:hover': { color: '#FFFFFF' },
             }}
           >
-            Mağazaya Git
-          </Button>
+            {siteText("src/pages/AuthPage.tsx#ef0efbe02ee1", "Mağazaya Git ")}</Button>
         </Box>
 
         {/* Naillabs Logo & Branding Header */}
@@ -151,7 +152,7 @@ export default function AuthPage() {
           <Box
             component="img"
             src="/assets/naillabs/logo.png"
-            alt="NAILAB"
+            alt={siteText("src/pages/AuthPage.tsx#907ba98d7a6a", "NAILAB")}
             sx={{
               width: 64,
               height: 64,
@@ -173,7 +174,7 @@ export default function AuthPage() {
               textTransform: 'uppercase',
             }}
           >
-            NAILAB<Box component="span" sx={{ color: '#D0B198', fontSize: '0.7em', ml: 0.3 }}>™</Box>
+            {siteText("src/pages/AuthPage.tsx#907ba98d7a6a", "NAILAB")}<Box component="span" sx={{ color: '#D0B198', fontSize: '0.7em', ml: 0.3 }}>{siteText("src/pages/AuthPage.tsx#c515cbeabf92", "™")}</Box>
           </Typography>
           <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6, mt: 0.3 }}>
             <VerifiedIcon sx={{ fontSize: 13, color: '#D0B198' }} />
@@ -186,8 +187,7 @@ export default function AuthPage() {
                 textTransform: 'uppercase',
               }}
             >
-              Profesyonel Müşteri & Akademi Portalı
-            </Typography>
+              {siteText("src/pages/AuthPage.tsx#a8f491b067b5", "Profesyonel Müşteri & Akademi Portalı ")}</Typography>
           </Box>
         </Box>
 
@@ -206,7 +206,7 @@ export default function AuthPage() {
             }}
           >
             <Tab
-              label="Giriş Yap"
+              label={siteText("src/pages/AuthPage.tsx#93f4dcc5424f", "Giriş Yap")}
               sx={{
                 color: tabIndex === 0 ? '#FFFFFF' : 'rgba(255,255,255,0.6)',
                 fontWeight: tabIndex === 0 ? 700 : 500,
@@ -215,7 +215,7 @@ export default function AuthPage() {
               }}
             />
             <Tab
-              label="Yeni Hesap Oluştur"
+              label={siteText("src/pages/AuthPage.tsx#b0f4db6af273", "Yeni Hesap Oluştur")}
               sx={{
                 color: tabIndex === 1 ? '#FFFFFF' : 'rgba(255,255,255,0.6)',
                 fontWeight: tabIndex === 1 ? 700 : 500,
@@ -263,11 +263,10 @@ export default function AuthPage() {
           {!isLogin && (
             <Box>
               <Typography sx={{ color: '#E0E0E0', fontSize: '0.82rem', fontWeight: 600, mb: 0.8 }}>
-                Ad Soyad
-              </Typography>
+                {siteText("src/pages/AuthPage.tsx#79ad1d911b8e", "Ad Soyad ")}</Typography>
               <TextField
                 fullWidth
-                placeholder="Örn: Selin Karaca"
+                placeholder={siteText("src/pages/AuthPage.tsx#11849528e220", "Örn: Selin Karaca")}
                 value={form.fullName}
                 onChange={(e) => setForm({ ...form, fullName: e.target.value })}
                 InputProps={{
@@ -293,12 +292,11 @@ export default function AuthPage() {
 
           <Box>
             <Typography sx={{ color: '#E0E0E0', fontSize: '0.82rem', fontWeight: 600, mb: 0.8 }}>
-              E-posta Adresi
-            </Typography>
+              {siteText("src/pages/AuthPage.tsx#36be25d24bcb", "E-posta Adresi ")}</Typography>
             <TextField
               fullWidth
               type="email"
-              placeholder="ornek@naillabs.com"
+              placeholder={siteText("src/pages/AuthPage.tsx#f1050a224a28", "ornek@naillabs.com")}
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               InputProps={{
@@ -323,12 +321,11 @@ export default function AuthPage() {
 
           <Box>
             <Typography sx={{ color: '#E0E0E0', fontSize: '0.82rem', fontWeight: 600, mb: 0.8 }}>
-              Şifre
-            </Typography>
+              {siteText("src/pages/AuthPage.tsx#8e7dcf05d497", "Şifre ")}</Typography>
             <TextField
               fullWidth
               type={showPassword ? 'text' : 'password'}
-              placeholder="••••••••"
+              placeholder={siteText("src/pages/AuthPage.tsx#fb852610a393", "••••••••")}
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               InputProps={{
@@ -416,29 +413,25 @@ export default function AuthPage() {
               },
             }}
           >
-            Üye Olmadan Mağazaya Dön
-          </Button>
+            {siteText("src/pages/AuthPage.tsx#5d388e67dbfb", "Üye Olmadan Mağazaya Dön ")}</Button>
         </Box>
 
         {/* Trainer / Admin Quick Links */}
         <Box sx={{ mt: 3.5, pt: 2.5, borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
           <Typography sx={{ fontSize: '0.78rem', color: '#888888', mb: 1 }}>
-            Eğitmen veya akademi temsilcisi misiniz?
-          </Typography>
+            {siteText("src/pages/AuthPage.tsx#fca866d7ec15", "Eğitmen veya akademi temsilcisi misiniz? ")}</Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
             <Link
               to="/egitmen-giris"
               style={{ color: '#D0B198', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none' }}
             >
-              Eğitmen Portalı →
-            </Link>
-            <Typography sx={{ color: 'rgba(255,255,255,0.2)' }}>•</Typography>
+              {siteText("src/pages/AuthPage.tsx#dbfec37095ed", "Eğitmen Portalı → ")}</Link>
+            <Typography sx={{ color: 'rgba(255,255,255,0.2)' }}>{siteText("src/pages/AuthPage.tsx#4f8865abeddb", "•")}</Typography>
             <Link
               to="/admin/giris"
               style={{ color: '#888888', fontSize: '0.82rem', textDecoration: 'none' }}
             >
-              Yönetici Girişi
-            </Link>
+              {siteText("src/pages/AuthPage.tsx#220f19f114e8", "Yönetici Girişi ")}</Link>
           </Box>
         </Box>
       </Box>

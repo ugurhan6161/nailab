@@ -3,6 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Box, Typography, Button, Container } from '@mui/material';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 const HERO_BACKGROUNDS = [
   {
@@ -27,7 +30,12 @@ export default function HomePage() {
   const [animating, setAnimating] = useState(false);
   const [bgIndex, setBgIndex] = useState(0);
 
-  const currentBg = HERO_BACKGROUNDS[bgIndex];
+  const background = HERO_BACKGROUNDS[bgIndex];
+  const currentBg = {
+    ...background,
+    label: siteText(`src/pages/HomePage.tsx#hero.${bgIndex}.label`, background.label),
+    badge: siteText(`src/pages/HomePage.tsx#hero.${bgIndex}.badge`, background.badge),
+  };
 
   const handleGetStart = () => {
     setAnimating(true);
@@ -116,7 +124,7 @@ export default function HomePage() {
               <Box
                 component="img"
                 src="/assets/naillabs/logo.png"
-                alt="NAILAB"
+                alt={siteText("src/pages/HomePage.tsx#907ba98d7a6a", "NAILAB")}
                 sx={{
                   width: 32,
                   height: 32,
@@ -136,8 +144,7 @@ export default function HomePage() {
                     textTransform: 'uppercase',
                   }}
                 >
-                  NAILAB™
-                </Typography>
+                  {siteText("src/pages/HomePage.tsx#b81ba0614750", "NAILAB™ ")}</Typography>
                 <Typography
                   sx={{
                     color: '#D0B198',
@@ -149,8 +156,7 @@ export default function HomePage() {
                     mt: 0.3,
                   }}
                 >
-                  Eğitim Sistemi
-                </Typography>
+                  {siteText("src/pages/HomePage.tsx#452e096b90ff", "Eğitim Sistemi ")}</Typography>
               </Box>
             </Box>
 
@@ -239,10 +245,8 @@ export default function HomePage() {
               fontFamily: 'Jost, -apple-system, BlinkMacSystemFont, sans-serif',
             }}
           >
-            Yeni Nesil
-            <br />
-            Bakış Açısı
-          </Typography>
+            {siteText("src/pages/HomePage.tsx#92c031dcda51", "Yeni Nesil ")}<br />
+            {siteText("src/pages/HomePage.tsx#3957dc468139", "Bakış Açısı ")}</Typography>
 
           {/* Subtitle */}
           <Typography
@@ -256,8 +260,7 @@ export default function HomePage() {
               maxWidth: 380,
             }}
           >
-            Patentli anatomik eğitim kiti, klinik freze uçları ve salon standartlarında profesyonel tırnak ekipmanları.
-          </Typography>
+            {siteText("src/pages/HomePage.tsx#0c772bcb76ad", "Patentli anatomik eğitim kiti, klinik freze uçları ve salon standartlarında profesyonel tırnak ekipmanları. ")}</Typography>
 
           {/* Action 1: "Hemen Başla" Pill Button */}
           <Box
@@ -292,7 +295,9 @@ export default function HomePage() {
                 },
               }}
             >
-              {animating ? 'Mağazaya Giriliyor…' : 'Hemen Başla'}
+              {animating
+                ? siteText('src/pages/HomePage.tsx#starting', 'Mağazaya Giriliyor…')
+                : siteText('src/pages/HomePage.tsx#start', 'Hemen Başla')}
             </Button>
           </Box>
 
@@ -324,8 +329,7 @@ export default function HomePage() {
                 },
               }}
             >
-              Giriş Yap / Hesap Oluştur
-            </Button>
+              {siteText("src/pages/HomePage.tsx#044855024139", "Giriş Yap / Hesap Oluştur ")}</Button>
           </Box>
         </Container>
       </Box>

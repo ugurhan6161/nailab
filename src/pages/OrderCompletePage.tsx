@@ -7,6 +7,9 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { supabase } from '../lib/supabase';
 import type { Order, OrderItem } from '../lib/supabase';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 export default function OrderCompletePage() {
   const { orderNumber } = useParams<{ orderNumber: string }>();
@@ -58,17 +61,15 @@ export default function OrderCompletePage() {
               mb: 1,
             }}
           >
-            Siparişiniz Alındı!
-          </Typography>
+            {siteText("src/pages/OrderCompletePage.tsx#a82efac7bf49", "Siparişiniz Alındı! ")}</Typography>
           <Typography sx={{ fontSize: '0.95rem', color: '#A0978E', mb: 1 }}>
-            Sipariş numaranız:{' '}
+            {siteText("src/pages/OrderCompletePage.tsx#28c840156745", "Sipariş numaranız:")}{' '}
             <Box component="strong" sx={{ color: '#D0B198', letterSpacing: '0.05em' }}>
               {orderNumber}
             </Box>
           </Typography>
           <Typography sx={{ fontSize: '0.85rem', color: '#777068' }}>
-            Sipariş detaylarınız kaydedildi. Ekibimiz sizinle en kısa sürede iletişime geçecektir.
-          </Typography>
+            {siteText("src/pages/OrderCompletePage.tsx#446d164d2cae", "Sipariş detaylarınız kaydedildi. Ekibimiz sizinle en kısa sürede iletişime geçecektir. ")}</Typography>
         </Box>
 
         <Paper
@@ -83,28 +84,26 @@ export default function OrderCompletePage() {
           {order ? (
             <>
               <Typography sx={{ fontWeight: 700, fontSize: 16, color: '#FFFFFF', mb: 2 }}>
-                Sipariş Özeti
-              </Typography>
+                {siteText("src/pages/OrderCompletePage.tsx#0fd020952874", "Sipariş Özeti ")}</Typography>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 3 }}>
                 <Box>
-                  <Typography sx={{ fontSize: 12, color: '#888888' }}>Müşteri</Typography>
+                  <Typography sx={{ fontSize: 12, color: '#888888' }}>{siteText("src/pages/OrderCompletePage.tsx#d1d8bce3b297", "Müşteri")}</Typography>
                   <Typography sx={{ fontWeight: 600, color: '#FFFFFF' }}>{order.guest_name}</Typography>
                 </Box>
                 <Box>
-                  <Typography sx={{ fontSize: 12, color: '#888888' }}>Telefon</Typography>
+                  <Typography sx={{ fontSize: 12, color: '#888888' }}>{siteText("src/pages/OrderCompletePage.tsx#fa6906d76ee9", "Telefon")}</Typography>
                   <Typography sx={{ fontWeight: 600, color: '#FFFFFF' }}>{order.guest_phone}</Typography>
                 </Box>
                 <Box>
-                  <Typography sx={{ fontSize: 12, color: '#888888' }}>Teslimat Adresi</Typography>
+                  <Typography sx={{ fontSize: 12, color: '#888888' }}>{siteText("src/pages/OrderCompletePage.tsx#48d51957f002", "Teslimat Adresi")}</Typography>
                   <Typography sx={{ fontSize: 13, color: '#FFFFFF' }}>
-                    {order.shipping_address?.address}, {order.shipping_address?.district}/{order.shipping_address?.city}
+                    {order.shipping_address?.address}{siteText("src/pages/OrderCompletePage.tsx#0a07f6594619", ", ")}{order.shipping_address?.district}{siteText("src/pages/OrderCompletePage.tsx#8a5edab28263", "/")}{order.shipping_address?.city}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography sx={{ fontSize: 12, color: '#888888' }}>Toplam Tutar</Typography>
+                  <Typography sx={{ fontSize: 12, color: '#888888' }}>{siteText("src/pages/OrderCompletePage.tsx#461cc6c16f92", "Toplam Tutar")}</Typography>
                   <Typography sx={{ fontWeight: 800, fontSize: 18, color: '#D0B198' }}>
-                    {order.total.toLocaleString('tr-TR')} ₺
-                  </Typography>
+                    {order.total.toLocaleString('tr-TR')} {siteText("src/pages/OrderCompletePage.tsx#fb0484ae0c37", "₺ ")}</Typography>
                 </Box>
               </Box>
 
@@ -112,8 +111,7 @@ export default function OrderCompletePage() {
 
               <Box sx={{ mb: 2 }}>
                 <Typography sx={{ fontWeight: 700, fontSize: 14, color: '#FFFFFF', mb: 2 }}>
-                  Sipariş Edilen Ürünler
-                </Typography>
+                  {siteText("src/pages/OrderCompletePage.tsx#da9eebc9635d", "Sipariş Edilen Ürünler ")}</Typography>
                 {order.order_items?.map((item: OrderItem) => (
                   <Box key={item.id} sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
                     <Box
@@ -127,12 +125,10 @@ export default function OrderCompletePage() {
                         {item.product_name}
                       </Typography>
                       <Typography sx={{ fontSize: 12, color: '#888888' }}>
-                        {item.quantity} x {item.unit_price.toLocaleString('tr-TR')} ₺
-                      </Typography>
+                        {item.quantity} {siteText("src/pages/OrderCompletePage.tsx#2ac3e029f2ae", "x ")}{item.unit_price.toLocaleString('tr-TR')} {siteText("src/pages/OrderCompletePage.tsx#fb0484ae0c37", "₺ ")}</Typography>
                     </Box>
                     <Typography sx={{ fontWeight: 700, fontSize: 14, color: '#FFFFFF' }}>
-                      {item.total_price.toLocaleString('tr-TR')} ₺
-                    </Typography>
+                      {item.total_price.toLocaleString('tr-TR')} {siteText("src/pages/OrderCompletePage.tsx#fb0484ae0c37", "₺ ")}</Typography>
                   </Box>
                 ))}
               </Box>
@@ -140,11 +136,9 @@ export default function OrderCompletePage() {
           ) : (
             <Box sx={{ textAlign: 'center', py: 2 }}>
               <Typography sx={{ color: '#A0978E', mb: 1 }}>
-                Sipariş kaydınız sistemimize başarıyla ulaştı.
-              </Typography>
+                {siteText("src/pages/OrderCompletePage.tsx#7b4599b608a9", "Sipariş kaydınız sistemimize başarıyla ulaştı. ")}</Typography>
               <Typography sx={{ fontSize: '0.85rem', color: '#777068' }}>
-                Siparişinizi yukarıdaki sipariş numarası ile dilediğiniz zaman takip edebilirsiniz.
-              </Typography>
+                {siteText("src/pages/OrderCompletePage.tsx#467e868e6db9", "Siparişinizi yukarıdaki sipariş numarası ile dilediğiniz zaman takip edebilirsiniz. ")}</Typography>
             </Box>
           )}
         </Paper>
@@ -165,8 +159,7 @@ export default function OrderCompletePage() {
               '&:hover': { bgcolor: '#F5ECE3' },
             }}
           >
-            Alışverişe Devam Et
-          </Button>
+            {siteText("src/pages/OrderCompletePage.tsx#2cbd9c6fb82a", "Alışverişe Devam Et ")}</Button>
           <Button
             component={Link}
             to="/siparis-takip"
@@ -181,8 +174,7 @@ export default function OrderCompletePage() {
               '&:hover': { borderColor: '#FFFFFF', bgcolor: 'rgba(255,255,255,0.06)' },
             }}
           >
-            Sipariş Takibi
-          </Button>
+            {siteText("src/pages/OrderCompletePage.tsx#7a22aa5c988b", "Sipariş Takibi ")}</Button>
         </Box>
       </Container>
     </Box>

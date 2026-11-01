@@ -1,42 +1,75 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Box, Typography, Container, Grid, Paper, Button, Divider, CircularProgress, Chip, List, ListItem, ListItemText
+  Alert, Box, Typography, Container, Grid, Paper, Button, Divider, CircularProgress, Chip, List, ListItem, ListItemText
 } from '@mui/material';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
+import { useAdminAuth } from '../context/AdminAuthContext';
+import { isAdminOrder } from '../lib/adminOrders';
 import type { Order } from '../lib/supabase';
 
 export default function AdminDashboardPage() {
-  const { user, profile, signOut } = useAuth();
+  const { authenticated, loading: authLoading, logout } = useAdminAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState({ products: 0, orders: 0, revenue: 0, pending: 0 });
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) { navigate('/admin/giris'); return; }
-    if (profile && profile.role !== 'admin') { navigate('/'); return; }
+    if (authLoading) return;
+    if (!authenticated) { navigate('/admin/giris'); return; }
     (async () => {
-      const [{ count: pCount }, { data: orders }] = await Promise.all([
-        supabase.from('products').select('*', { count: 'exact', head: true }),
-        supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(10),
-      ]);
-      const revenue = (orders || []).reduce((sum, o) => sum + (o.total || 0), 0);
-      const pending = (orders || []).filter(o => o.status === 'beklemede' || o.status === 'onaylandı').length;
-      setStats({ products: pCount || 0, orders: orders?.length || 0, revenue, pending });
-      setRecentOrders(orders || []);
-      setLoading(false);
+      try {
+        const [productsResponse, ordersResponse] = await Promise.all([
+          fetch('/api/products', { cache: 'no-store' }),
+          fetch('/api/admin/orders?limit=10', { cache: 'no-store', credentials: 'same-origin' }),
+        ]);
+        const [productsBody, ordersBody]: unknown[] = await Promise.all([
+          productsResponse.json(),
+          ordersResponse.json(),
+        ]);
+        if (!productsResponse.ok) throw new Error('Ürün kataloğu yüklenemedi.');
+        if (!ordersResponse.ok) {
+          const message = typeof ordersBody === 'object' && ordersBody !== null
+            && 'error' in ordersBody && typeof ordersBody.error === 'string'
+            ? ordersBody.error : 'Siparişler yüklenemedi.';
+          throw new Error(message);
+        }
+        if (
+          typeof productsBody !== 'object' || productsBody === null
+          || !('products' in productsBody) || !Array.isArray(productsBody.products)
+          || typeof ordersBody !== 'object' || ordersBody === null
+          || !('orders' in ordersBody) || !Array.isArray(ordersBody.orders)
+          || !ordersBody.orders.every(isAdminOrder)
+        ) throw new Error('Admin panel API yanıtı beklenen biçimde değil.');
+
+        const orders = ordersBody.orders;
+        const revenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+        const pending = orders.filter((order) => order.status === 'beklemede' || order.status === 'onaylandı').length;
+        setStats({ products: productsBody.products.length, orders: orders.length, revenue, pending });
+        setRecentOrders(orders);
+      } catch (loadError) {
+        setError(loadError instanceof Error ? loadError.message : 'Admin verileri yüklenemedi.');
+      } finally {
+        setLoading(false);
+      }
     })();
-  }, [user, profile, navigate]);
+  }, [authenticated, authLoading, navigate]);
 
-  if (!user) return null;
+  if (!authenticated) return null;
 
-  const handleSignOut = async () => { await signOut(); navigate('/'); };
+  const handleSignOut = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (logoutError) {
+      setError(logoutError instanceof Error ? logoutError.message : 'Çıkış yapılamadı.');
+    }
+  };
 
   return (
     <Box sx={{ bgcolor: '#FFFFFF', minHeight: '100vh' }}>
@@ -51,11 +84,13 @@ export default function AdminDashboardPage() {
       </Box>
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
+        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
         {/* Nav tabs */}
         <Box sx={{ display: 'flex', gap: 1, mb: 4, flexWrap: 'wrap' }}>
           {[
             { label: 'Genel Bakış', href: '/admin', icon: <DashboardOutlinedIcon sx={{ fontSize: 16 }} />, active: true },
             { label: 'Ürünler', href: '/admin/urunler', icon: <Inventory2OutlinedIcon sx={{ fontSize: 16 }} /> },
+            { label: 'İçerik düzenle', href: '/admin/icerik', icon: <Inventory2OutlinedIcon sx={{ fontSize: 16 }} /> },
             { label: 'Siparişler', href: '/admin/siparisler', icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 16 }} /> },
           ].map(t => (
             <Button key={t.href} component={Link} to={t.href}

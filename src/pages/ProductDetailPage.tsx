@@ -15,9 +15,12 @@ import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductsContext';
 import NailFormIllustration from '../components/NailFormIllustration';
 import {
-  KIT_CONTENT, FAQ, NAIL_FORMS,
+  getEditableKitContent, getEditableFaq, getEditableNailForms,
 } from '../lib/productContent';
 import { toAppProduct } from '../lib/ecommerceData';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 function ProductVisual({ imageUrl, name }: { imageUrl: string; name: string }) {
   return (
@@ -64,8 +67,7 @@ function ProductVisual({ imageUrl, name }: { imageUrl: string; name: string }) {
             }}
           >
             <Typography variant="caption" sx={{ color: '#D0B198', lineHeight: 1.5 }}>
-              NAILAB™ Görseli
-            </Typography>
+              {siteText("src/pages/ProductDetailPage.tsx#0eff4d491ae3", "NAILAB™ Görseli ")}</Typography>
           </Box>
         </Box>
       )}
@@ -81,6 +83,9 @@ export default function ProductDetailPage() {
   const configuredProduct = products.find((item) => item.id === id);
   const product: Product | null = configuredProduct ? toAppProduct(configuredProduct) : null;
   const loading = catalogLoading;
+  const kitContent = getEditableKitContent();
+  const faq = getEditableFaq();
+  const nailForms = getEditableNailForms();
   const [quantity, setQuantity] = useState(1);
   const [tab, setTab] = useState(0);
   const [toast, setToast] = useState(false);
@@ -111,7 +116,7 @@ export default function ProductDetailPage() {
     return (
       <Container sx={{ py: 12, bgcolor: '#090807', color: '#FFFFFF', textAlign: 'center' }}>
         <Typography variant="h2" sx={{ fontSize: '1.5rem', mb: 2 }}>
-          {catalogError || 'Ürün bulunamadı.'}
+          {catalogError || siteText('src/pages/ProductDetailPage.tsx#product-not-found', 'Ürün bulunamadı.')}
         </Typography>
         <Button
           onClick={() => navigate(-1)}
@@ -123,8 +128,7 @@ export default function ProductDetailPage() {
             '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
           }}
         >
-          Geri Dön
-        </Button>
+          {siteText("src/pages/ProductDetailPage.tsx#f3d8f7b1cbca", "Geri Dön ")}</Button>
       </Container>
     );
   }
@@ -157,8 +161,7 @@ export default function ProductDetailPage() {
               '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' },
             }}
           >
-            Geri Dön
-          </Button>
+            {siteText("src/pages/ProductDetailPage.tsx#f3d8f7b1cbca", "Geri Dön ")}</Button>
         </Box>
 
         <Grid container spacing={{ xs: 3, md: 6 }} alignItems="center">
@@ -168,7 +171,7 @@ export default function ProductDetailPage() {
           <Grid size={{ xs: 12, md: 6 }}>
             <Chip
               icon={<VerifiedIcon sx={{ fontSize: 14, color: '#D0B198 !important' }} />}
-              label={product.badge || 'PROFESYONEL NAILAB SERİSİ'}
+              label={product.badge || siteText('src/pages/ProductDetailPage.tsx#default-badge', 'PROFESYONEL NAILAB SERİSİ')}
               variant="outlined"
               sx={{
                 borderColor: 'rgba(208,177,152,0.4)',
@@ -206,16 +209,13 @@ export default function ProductDetailPage() {
             >
               {canBuy ? (
                 <Typography variant="h2" sx={{ fontSize: '2rem', fontWeight: 800, color: '#FFFFFF' }}>
-                  {product.price.toLocaleString('tr-TR')} ₺
-                </Typography>
+                  {product.price.toLocaleString('tr-TR')} {siteText("src/pages/ProductDetailPage.tsx#fb0484ae0c37", "₺ ")}</Typography>
               ) : (
                 <Typography sx={{ color: '#D0B198', fontWeight: 500 }}>
-                  Fiyat ve stok bilgisi güncelleniyor.
-                </Typography>
+                  {siteText("src/pages/ProductDetailPage.tsx#3652eccea81a", "Fiyat ve stok bilgisi güncelleniyor. ")}</Typography>
               )}
               <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
-                KDV dahil • Resmi Distribütör Garantili
-              </Typography>
+                {siteText("src/pages/ProductDetailPage.tsx#33ae2921b98b", "KDV dahil • Resmi Distribütör Garantili ")}</Typography>
             </Box>
 
             <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
@@ -230,7 +230,7 @@ export default function ProductDetailPage() {
                   }}
                 >
                   <IconButton
-                    aria-label="Adedi azalt"
+                    aria-label={siteText("src/pages/ProductDetailPage.tsx#22de0ac272e0", "Adedi azalt")}
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                     sx={{ color: '#FFFFFF' }}
                   >
@@ -240,7 +240,7 @@ export default function ProductDetailPage() {
                     {quantity}
                   </Typography>
                   <IconButton
-                    aria-label="Adedi artır"
+                    aria-label={siteText("src/pages/ProductDetailPage.tsx#2af12e931aaf", "Adedi artır")}
                     onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
                     sx={{ color: '#FFFFFF' }}
                   >
@@ -264,15 +264,16 @@ export default function ProductDetailPage() {
                   '&:hover': { bgcolor: '#F5ECE3' },
                 }}
               >
-                {canBuy ? 'Sepete Ekle' : 'Stokta Yok'}
+                {canBuy
+                  ? siteText('src/pages/ProductDetailPage.tsx#add-to-cart', 'Sepete Ekle')
+                  : siteText('src/pages/ProductDetailPage.tsx#out-of-stock', 'Stokta Yok')}
               </Button>
             </Stack>
 
             <Stack direction="row" spacing={1.5} sx={{ mt: 2.5, color: 'rgba(255,255,255,0.6)' }} alignItems="center">
               <LocalShippingOutlinedIcon sx={{ fontSize: 18, color: '#D0B198' }} />
               <Typography variant="body2">
-                1.500 ₺ üzeri ücretsiz hızlı kargo. 2-4 iş gününde teslimat.
-              </Typography>
+                {siteText("src/pages/ProductDetailPage.tsx#c1c07d3111f7", "1.500 ₺ üzeri ücretsiz hızlı kargo. 2-4 iş gününde teslimat. ")}</Typography>
             </Stack>
           </Grid>
         </Grid>
@@ -294,15 +295,15 @@ export default function ProductDetailPage() {
               '& .Mui-selected': { color: '#FFFFFF !important' },
             }}
           >
-            <Tab label="Ürün İçeriği" />
-            <Tab label="Tırnak Formları" />
-            <Tab label="Sıkça Sorulanlar" />
+            <Tab label={siteText("src/pages/ProductDetailPage.tsx#a3680670afac", "Ürün İçeriği")} />
+            <Tab label={siteText("src/pages/ProductDetailPage.tsx#63bc2f1f05ed", "Tırnak Formları")} />
+            <Tab label={siteText("src/pages/ProductDetailPage.tsx#9707f992a1cb", "Sıkça Sorulanlar")} />
           </Tabs>
 
           <Box sx={{ py: 4 }}>
             {tab === 0 && (
               <Grid container spacing={2.5}>
-                {KIT_CONTENT.map((item) => (
+                {kitContent.map((item) => (
                   <Grid size={{ xs: 12, md: 4 }} key={item.title}>
                     <Box
                       sx={{
@@ -327,10 +328,9 @@ export default function ProductDetailPage() {
             {tab === 1 && (
               <Box>
                 <Typography sx={{ color: 'rgba(255,255,255,0.7)', mb: 3 }}>
-                  Kit, aşağıdaki dört değiştirilebilir medikal polimer tırnak formunun tamamını içerir.
-                </Typography>
+                  {siteText("src/pages/ProductDetailPage.tsx#28518cd3eb8a", "Kit, aşağıdaki dört değiştirilebilir medikal polimer tırnak formunun tamamını içerir. ")}</Typography>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  {NAIL_FORMS.map((form) => (
+                  {nailForms.map((form) => (
                     <Box
                       key={form.name}
                       sx={{
@@ -349,7 +349,7 @@ export default function ProductDetailPage() {
             )}
             {tab === 2 && (
               <Stack spacing={2.5} sx={{ maxWidth: 740 }}>
-                {FAQ.map((item) => (
+                {faq.map((item) => (
                   <Box
                     key={item.q}
                     sx={{
@@ -390,8 +390,7 @@ export default function ProductDetailPage() {
             borderRadius: 50,
           }}
         >
-          {quantity} adet {product.name} sepete eklendi!
-        </Alert>
+          {quantity} {siteText("src/pages/ProductDetailPage.tsx#161fe6652531", "adet ")}{product.name} {siteText("src/pages/ProductDetailPage.tsx#d1bf288902ef", "sepete eklendi! ")}</Alert>
       </Snackbar>
     </Box>
   );

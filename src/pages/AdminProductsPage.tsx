@@ -8,22 +8,21 @@ import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { useAuth } from '../context/AuthContext';
+import { useAdminAuth } from '../context/AdminAuthContext';
 import { useProducts } from '../context/ProductsContext';
 
 export default function AdminProductsPage() {
-  const { user, profile, signOut } = useAuth();
+  const { authenticated, loading: authLoading, logout } = useAdminAuth();
   const navigate = useNavigate();
   const { products, loading, error, refresh } = useProducts();
 
   useEffect(() => {
-    if (!user) { navigate('/admin/giris'); return; }
-    if (profile && profile.role !== 'admin') { navigate('/'); return; }
-  }, [user, profile, navigate]);
+    if (!authLoading && !authenticated) navigate('/admin/giris');
+  }, [authenticated, authLoading, navigate]);
 
-  if (!user) return null;
+  if (authLoading || !authenticated) return null;
 
-  const handleSignOut = async () => { await signOut(); navigate('/'); };
+  const handleSignOut = async () => { await logout(); navigate('/'); };
 
   return (
     <Box sx={{ bgcolor: '#FFFFFF', minHeight: '100vh' }}>
@@ -42,6 +41,7 @@ export default function AdminProductsPage() {
           {[
             { label: 'Genel Bakış', href: '/admin', icon: <DashboardOutlinedIcon sx={{ fontSize: 16 }} /> },
             { label: 'Ürünler', href: '/admin/urunler', icon: <Inventory2OutlinedIcon sx={{ fontSize: 16 }} />, active: true },
+            { label: 'İçerik düzenle', href: '/admin/icerik', icon: <Inventory2OutlinedIcon sx={{ fontSize: 16 }} /> },
             { label: 'Siparişler', href: '/admin/siparisler', icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 16 }} /> },
           ].map(t => (
             <Button key={t.href} component={Link} to={t.href}
@@ -63,7 +63,8 @@ export default function AdminProductsPage() {
         </Box>
 
         <Alert severity="info" sx={{ mb: 3 }}>
-          Ürün ve fiyat düzenlemeleri Vercel projenizin Global Config deposundaki <strong>products</strong> anahtarından yapılır.
+          Ürün, fiyat ve web sitesi metinlerini değiştirmek için{' '}
+          <Button component={Link} to="/admin/icerik" size="small">içerik düzenleyiciyi açın</Button>.
         </Alert>
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 

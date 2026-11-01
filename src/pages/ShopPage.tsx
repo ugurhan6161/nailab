@@ -20,9 +20,12 @@ import { useWishlist } from '../context/WishlistContext';
 import { useFlyAnimation } from '../context/FlyAnimationContext';
 import { useProducts } from '../context/ProductsContext';
 import {
-  CATEGORIES, BEST_SELLING_CATEGORIES,
+  getCategories, getBestSellingCategories,
   toAppProduct, type StoreProduct,
 } from '../lib/ecommerceData';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 export default function ShopPage() {
   const navigate = useNavigate();
@@ -50,6 +53,8 @@ export default function ShopPage() {
   const [animatingWishlistCartId, setAnimatingWishlistCartId] = useState<string | null>(null);
 
   const productSectionRef = useRef<HTMLDivElement>(null);
+  const categories = getCategories();
+  const bestSellingCategories = getBestSellingCategories();
 
   // Skeleton loading effect on mount
   useEffect(() => {
@@ -78,7 +83,8 @@ export default function ShopPage() {
 
     flyToCart(e.currentTarget, sp.image);
     addToCart(toAppProduct(sp), 1);
-    setToastMessage(`"${sp.title}" sepete eklendi!`);
+    setToastMessage(siteText('src/pages/ShopPage.tsx#cart-added', '"{product}" sepete eklendi!')
+      .replace('{product}', sp.title));
   };
 
   const handleWishlistCartClick = (e: React.MouseEvent<HTMLButtonElement>, sp: StoreProduct) => {
@@ -88,7 +94,8 @@ export default function ShopPage() {
 
     flyToCart(e.currentTarget, sp.image);
     addToCart(toAppProduct(sp), 1);
-    setToastMessage(`"${sp.title}" sepete eklendi!`);
+    setToastMessage(siteText('src/pages/ShopPage.tsx#cart-added', '"{product}" sepete eklendi!')
+      .replace('{product}', sp.title));
   };
 
   const scrollToProducts = () => {
@@ -173,7 +180,7 @@ export default function ShopPage() {
               <Box
                 component="img"
                 src="/assets/naillabs/logo.png"
-                alt="NAILAB"
+                alt={siteText("src/pages/ShopPage.tsx#907ba98d7a6a", "NAILAB")}
                 sx={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' }}
               />
               <Typography
@@ -184,14 +191,13 @@ export default function ShopPage() {
                   letterSpacing: '0.04em',
                 }}
               >
-                NAILAB™
-              </Typography>
+                {siteText("src/pages/ShopPage.tsx#b81ba0614750", "NAILAB™ ")}</Typography>
             </Box>
 
             {/* Top Right Action Icons: Search, Favorite Target, Cart Target */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <IconButton
-                aria-label="Arama"
+                aria-label={siteText("src/pages/ShopPage.tsx#e81a70218d01", "Arama")}
                 onClick={() => setSearchOpen(true)}
                 sx={{
                   width: 38,
@@ -214,7 +220,7 @@ export default function ShopPage() {
               <Box sx={{ position: 'relative' }}>
                 <IconButton
                   ref={registerWishlistTarget}
-                  aria-label="Favoriler"
+                  aria-label={siteText("src/pages/ShopPage.tsx#13e9f8c058c9", "Favoriler")}
                   onClick={() => setWishlistOpen(true)}
                   sx={{
                     width: 38,
@@ -274,7 +280,7 @@ export default function ShopPage() {
                   ref={registerCartTarget}
                   component={Link}
                   to="/sepet"
-                  aria-label="Sepet"
+                  aria-label={siteText("src/pages/ShopPage.tsx#034fe767aac7", "Sepet")}
                   sx={{
                     width: 38,
                     height: 38,
@@ -344,8 +350,7 @@ export default function ShopPage() {
                 fontFamily: 'Jost, sans-serif',
               }}
             >
-              Yeni Ürünlerimiz
-            </Typography>
+              {siteText("src/pages/ShopPage.tsx#52f0da6c3555", "Yeni Ürünlerimiz ")}</Typography>
 
             <Box
               className="fade-in-up-3"
@@ -364,8 +369,7 @@ export default function ShopPage() {
               }}
             >
               <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
-                TÜMÜNÜ İNCELE
-              </Typography>
+                {siteText("src/pages/ShopPage.tsx#bc300ebc4a41", "TÜMÜNÜ İNCELE ")}</Typography>
               <ArrowForwardIosIcon sx={{ fontSize: 14, color: '#FFFFFF' }} />
             </Box>
           </Box>
@@ -391,8 +395,7 @@ export default function ShopPage() {
                   fontFamily: 'Jost, sans-serif',
                 }}
               >
-                Kategoriler
-              </Typography>
+                {siteText("src/pages/ShopPage.tsx#f6a3762fc7bf", "Kategoriler ")}</Typography>
               <Typography
                 component={Link}
                 to="/kategori/all"
@@ -404,8 +407,7 @@ export default function ShopPage() {
                   '&:hover': { color: '#000000' },
                 }}
               >
-                Tümü
-              </Typography>
+                {siteText("src/pages/ShopPage.tsx#83807e68d689", "Tümü ")}</Typography>
             </Box>
 
             {/* SKELETON OR CAROUSEL */}
@@ -434,7 +436,7 @@ export default function ShopPage() {
                   WebkitOverflowScrolling: 'touch',
                 }}
               >
-                {CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <Box
                     key={cat.id}
                     onClick={() => navigate(`/kategori/${cat.tag}`)}
@@ -512,8 +514,7 @@ export default function ShopPage() {
                   fontFamily: 'Jost, sans-serif',
                 }}
               >
-                Kategorilere Göre En Çok Satanlar
-              </Typography>
+                {siteText("src/pages/ShopPage.tsx#3cb98dfb4dfb", "Kategorilere Göre En Çok Satanlar ")}</Typography>
               <Typography
                 component={Link}
                 to="/kategori/all"
@@ -525,8 +526,7 @@ export default function ShopPage() {
                   '&:hover': { color: '#000000' },
                 }}
               >
-                Tümü
-              </Typography>
+                {siteText("src/pages/ShopPage.tsx#83807e68d689", "Tümü ")}</Typography>
             </Box>
 
             {/* SKELETON OR CAROUSEL */}
@@ -555,7 +555,7 @@ export default function ShopPage() {
                   WebkitOverflowScrolling: 'touch',
                 }}
               >
-                {BEST_SELLING_CATEGORIES.map((best, idx) => (
+                {bestSellingCategories.map((best, idx) => (
                   <Box
                     key={`${best.id}-${idx}`}
                     onClick={() => navigate(`/kategori/${best.tag}`)}
@@ -632,8 +632,7 @@ export default function ShopPage() {
                   fontFamily: 'Jost, sans-serif',
                 }}
               >
-                Öne Çıkan Koleksiyon
-              </Typography>
+                {siteText("src/pages/ShopPage.tsx#ca3746f8b41d", "Öne Çıkan Koleksiyon ")}</Typography>
               <Typography
                 component={Link}
                 to="/kategori/all"
@@ -644,15 +643,14 @@ export default function ShopPage() {
                   textDecoration: 'none',
                 }}
               >
-                Tümü
-              </Typography>
+                {siteText("src/pages/ShopPage.tsx#83807e68d689", "Tümü ")}</Typography>
             </Box>
 
             {/* SKELETON OR PRODUCT CARDS */}
             {catalogError && (
               <Alert
                 severity="error"
-                action={<Button color="inherit" size="small" onClick={refresh}>Tekrar dene</Button>}
+                action={<Button color="inherit" size="small" onClick={refresh}>{siteText("src/pages/ShopPage.tsx#0ce9380b07f8", "Tekrar dene")}</Button>}
                 sx={{ mb: 2 }}
               >
                 {catalogError}
@@ -832,16 +830,14 @@ export default function ShopPage() {
             size="small"
             sx={{ color: '#000000', fontWeight: 600, fontSize: 13 }}
           >
-            Başlangıç
-          </Button>
+            {siteText("src/pages/ShopPage.tsx#74380534e1b0", "Başlangıç ")}</Button>
           <Button
             component={Link}
             to="/kategori/kits"
             size="small"
             sx={{ color: '#000000', fontWeight: 600, fontSize: 13 }}
           >
-            Kategoriler
-          </Button>
+            {siteText("src/pages/ShopPage.tsx#f6a3762fc7bf", "Kategoriler ")}</Button>
           <Button
             component={Link}
             to="/sepet"
@@ -860,8 +856,7 @@ export default function ShopPage() {
               '&:hover': { bgcolor: '#222222' },
             }}
           >
-            Sepet ({itemCount})
-          </Button>
+            {siteText("src/pages/ShopPage.tsx#30d142f65b04", "Sepet (")}{itemCount}{siteText("src/pages/ShopPage.tsx#daac4fe11107", ") ")}</Button>
         </Box>
       </Box>
 
@@ -882,8 +877,7 @@ export default function ShopPage() {
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography sx={{ fontSize: 20, fontWeight: 700, color: '#FFFFFF' }}>
-            Favorilerim ({wishlistProducts.length})
-          </Typography>
+            {siteText("src/pages/ShopPage.tsx#31231835f710", "Favorilerim (")}{wishlistProducts.length}{siteText("src/pages/ShopPage.tsx#daac4fe11107", ") ")}</Typography>
           <IconButton onClick={() => setWishlistOpen(false)} sx={{ color: '#FFFFFF' }}>
             <CloseIcon />
           </IconButton>
@@ -892,7 +886,7 @@ export default function ShopPage() {
         {wishlistProducts.length === 0 ? (
           <Box sx={{ py: 8, textAlign: 'center' }}>
             <FavoriteBorderIcon sx={{ fontSize: 44, color: '#777777', mb: 1.5 }} />
-            <Typography sx={{ color: 'rgba(255,255,255,0.6)' }}>Favorilere henüz ürün eklemediniz.</Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,0.6)' }}>{siteText("src/pages/ShopPage.tsx#22aeabaeab2e", "Favorilere henüz ürün eklemediniz.")}</Typography>
           </Box>
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
@@ -951,8 +945,7 @@ export default function ShopPage() {
                           '&:hover': { bgcolor: '#D0B198', color: '#000000' },
                         }}
                       >
-                        Sepete Git
-                      </Button>
+                        {siteText("src/pages/ShopPage.tsx#e79de8f9b463", "Sepete Git ")}</Button>
                     )}
                   </Box>
                   <IconButton
@@ -1004,7 +997,7 @@ export default function ShopPage() {
         }}
       >
         <DialogTitle sx={{ p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography sx={{ fontWeight: 700, fontSize: 18, color: '#FFFFFF' }}>Naillabs Ürünlerinde Ara</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: 18, color: '#FFFFFF' }}>{siteText("src/pages/ShopPage.tsx#68a2db4f559f", "Naillabs Ürünlerinde Ara")}</Typography>
           <IconButton size="small" onClick={() => setSearchOpen(false)} sx={{ color: '#FFFFFF' }}>
             <CloseIcon />
           </IconButton>
@@ -1013,7 +1006,7 @@ export default function ShopPage() {
           <TextField
             autoFocus
             fullWidth
-            placeholder="Eğitim Kiti, Freze Ucu, Form..."
+            placeholder={siteText("src/pages/ShopPage.tsx#ddadee218e4b", "Eğitim Kiti, Freze Ucu, Form...")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{
@@ -1095,8 +1088,7 @@ export default function ShopPage() {
                 '&:hover': { color: '#FFFFFF' },
               }}
             >
-              Sepeti Gör
-            </Button>
+              {siteText("src/pages/ShopPage.tsx#437db4fb0e67", "Sepeti Gör ")}</Button>
           }
           sx={{
             width: '100%',

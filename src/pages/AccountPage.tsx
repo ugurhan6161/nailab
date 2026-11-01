@@ -11,6 +11,9 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import type { Order } from '../lib/supabase';
+import { siteText } from '../context/WebsiteDataContext';
+
+
 
 export default function AccountPage() {
   const { user, profile, signOut, refreshProfile } = useAuth();
@@ -58,13 +61,11 @@ export default function AccountPage() {
               '&:hover': { color: '#D0B198' },
             }}
           >
-            Mağazaya Geri Dön
-          </Button>
+            {siteText("src/pages/AccountPage.tsx#773eca0282d2", "Mağazaya Geri Dön ")}</Button>
         </Box>
 
         <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: { xs: 26, md: 36 }, fontWeight: 700, color: '#FFFFFF', mb: 4 }}>
-          Hesabım
-        </Typography>
+          {siteText("src/pages/AccountPage.tsx#c1882cc47a22", "Hesabım ")}</Typography>
 
         <Grid container spacing={4}>
           {/* Sidebar */}
@@ -77,15 +78,17 @@ export default function AccountPage() {
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography sx={{ fontWeight: 700, fontSize: 14, color: '#FFFFFF' }}>{profile?.full_name || 'Değerli Üyemiz'}</Typography>
+                  <Typography sx={{ fontWeight: 700, fontSize: 14, color: '#FFFFFF' }}>
+                    {profile?.full_name || siteText('src/pages/AccountPage.tsx#fallback-name', 'Değerli Üyemiz')}
+                  </Typography>
                   <Typography sx={{ fontSize: 12, color: '#A0978E', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>{user.email}</Typography>
                 </Box>
               </Box>
               <Divider sx={{ mb: 1.5, borderColor: 'rgba(255,255,255,0.08)' }} />
               {[
-                { icon: <PersonOutlineIcon sx={{ fontSize: 18 }} />, label: 'Profil Bilgileri', active: true },
-                { icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 18 }} />, label: 'Siparişlerim', href: '/siparislerim' },
-                { icon: <LocationOnOutlinedIcon sx={{ fontSize: 18 }} />, label: 'Adreslerim' },
+                { icon: <PersonOutlineIcon sx={{ fontSize: 18 }} />, label: siteText('src/pages/AccountPage.tsx#nav.profile', 'Profil Bilgileri'), active: true },
+                { icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 18 }} />, label: siteText('src/pages/AccountPage.tsx#nav.orders', 'Siparişlerim'), href: '/siparislerim' },
+                { icon: <LocationOnOutlinedIcon sx={{ fontSize: 18 }} />, label: siteText('src/pages/AccountPage.tsx#nav.addresses', 'Adreslerim') },
               ].map((item, i) => (
                 <Button key={i} fullWidth component={item.href ? Link : 'button'} to={item.href}
                   sx={{
@@ -105,7 +108,7 @@ export default function AccountPage() {
               ))}
               <Divider sx={{ my: 1.5, borderColor: 'rgba(255,255,255,0.08)' }} />
               <Button fullWidth onClick={handleSignOut} sx={{ justifyContent: 'flex-start', color: '#E06B6B', fontSize: 13, py: 1, textTransform: 'none', '&:hover': { bgcolor: 'rgba(224,107,107,0.1)' } }}>
-                <LogoutIcon sx={{ fontSize: 18 }} /><Box sx={{ ml: 1.5 }}>Çıkış Yap</Box>
+                <LogoutIcon sx={{ fontSize: 18 }} /><Box sx={{ ml: 1.5 }}>{siteText("src/pages/AccountPage.tsx#283092d12a56", "Çıkış Yap")}</Box>
               </Button>
             </Paper>
           </Grid>
@@ -116,18 +119,16 @@ export default function AccountPage() {
             <Paper sx={{ p: 3.5, mb: 3, borderRadius: 3, bgcolor: '#14110E', border: '1px solid rgba(255,255,255,0.08)' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 20, fontWeight: 700, color: '#FFFFFF' }}>
-                  Profil Bilgileri
-                </Typography>
+                  {siteText("src/pages/AccountPage.tsx#f5afc587e807", "Profil Bilgileri ")}</Typography>
                 {!editMode && (
                   <Button onClick={handleStartEdit} size="small" sx={{ color: '#D0B198', fontSize: 13, textTransform: 'none', border: '1px solid rgba(208,177,152,0.3)', borderRadius: 2, px: 2, '&:hover': { bgcolor: 'rgba(208,177,152,0.1)' } }}>
-                    Düzenle
-                  </Button>
+                    {siteText("src/pages/AccountPage.tsx#0016e5c7992e", "Düzenle ")}</Button>
                 )}
               </Box>
               {editMode ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, maxWidth: 440 }}>
                   <TextField
-                    label="Ad Soyad"
+                    label={siteText("src/pages/AccountPage.tsx#ddd4f9684e96", "Ad Soyad")}
                     size="small"
                     fullWidth
                     value={editForm.full_name}
@@ -143,7 +144,7 @@ export default function AccountPage() {
                     }}
                   />
                   <TextField
-                    label="Telefon"
+                    label={siteText("src/pages/AccountPage.tsx#fa6906d76ee9", "Telefon")}
                     size="small"
                     fullWidth
                     value={editForm.phone}
@@ -160,26 +161,28 @@ export default function AccountPage() {
                   />
                   <Box sx={{ display: 'flex', gap: 1.5, mt: 1 }}>
                     <Button variant="contained" size="small" onClick={saveProfile} sx={{ bgcolor: '#D0B198', color: '#0E0C0A', fontWeight: 700, px: 3, '&:hover': { bgcolor: '#EED2BC' } }}>
-                      Kaydet
-                    </Button>
+                      {siteText("src/pages/AccountPage.tsx#6e6d5251fcd5", "Kaydet ")}</Button>
                     <Button onClick={() => setEditMode(false)} size="small" sx={{ color: '#A0978E', '&:hover': { color: '#FFFFFF' } }}>
-                      İptal
-                    </Button>
+                      {siteText("src/pages/AccountPage.tsx#e3566e11bb29", "İptal ")}</Button>
                   </Box>
                 </Box>
               ) : (
                 <Grid container spacing={3}>
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography sx={{ fontSize: 11, color: '#A0978E', textTransform: 'uppercase', letterSpacing: 1, mb: 0.5 }}>Ad Soyad</Typography>
-                    <Typography sx={{ fontSize: 15, color: '#FFFFFF', fontWeight: 600 }}>{profile?.full_name || 'Belirtilmedi'}</Typography>
+                    <Typography sx={{ fontSize: 11, color: '#A0978E', textTransform: 'uppercase', letterSpacing: 1, mb: 0.5 }}>{siteText("src/pages/AccountPage.tsx#ddd4f9684e96", "Ad Soyad")}</Typography>
+                    <Typography sx={{ fontSize: 15, color: '#FFFFFF', fontWeight: 600 }}>
+                      {profile?.full_name || siteText('src/pages/AccountPage.tsx#fallback-unspecified', 'Belirtilmedi')}
+                    </Typography>
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography sx={{ fontSize: 11, color: '#A0978E', textTransform: 'uppercase', letterSpacing: 1, mb: 0.5 }}>E-posta</Typography>
+                    <Typography sx={{ fontSize: 11, color: '#A0978E', textTransform: 'uppercase', letterSpacing: 1, mb: 0.5 }}>{siteText("src/pages/AccountPage.tsx#e1081b69d80a", "E-posta")}</Typography>
                     <Typography sx={{ fontSize: 15, color: '#FFFFFF', fontWeight: 600 }}>{user.email}</Typography>
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography sx={{ fontSize: 11, color: '#A0978E', textTransform: 'uppercase', letterSpacing: 1, mb: 0.5 }}>Telefon</Typography>
-                    <Typography sx={{ fontSize: 15, color: '#FFFFFF', fontWeight: 600 }}>{profile?.phone || 'Belirtilmedi'}</Typography>
+                    <Typography sx={{ fontSize: 11, color: '#A0978E', textTransform: 'uppercase', letterSpacing: 1, mb: 0.5 }}>{siteText("src/pages/AccountPage.tsx#fa6906d76ee9", "Telefon")}</Typography>
+                    <Typography sx={{ fontSize: 15, color: '#FFFFFF', fontWeight: 600 }}>
+                      {profile?.phone || siteText('src/pages/AccountPage.tsx#fallback-unspecified', 'Belirtilmedi')}
+                    </Typography>
                   </Grid>
                 </Grid>
               )}
@@ -189,22 +192,19 @@ export default function AccountPage() {
             <Paper sx={{ p: 3.5, borderRadius: 3, bgcolor: '#14110E', border: '1px solid rgba(255,255,255,0.08)' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 20, fontWeight: 700, color: '#FFFFFF' }}>
-                  Son Siparişlerim
-                </Typography>
+                  {siteText("src/pages/AccountPage.tsx#0c9f1c2e2606", "Son Siparişlerim ")}</Typography>
                 <Button component={Link} to="/siparislerim" size="small" sx={{ color: '#D0B198', fontSize: 13, textTransform: 'none', '&:hover': { color: '#EED2BC' } }}>
-                  Tümünü Gör
-                </Button>
+                  {siteText("src/pages/AccountPage.tsx#d0d594c901b9", "Tümünü Gör ")}</Button>
               </Box>
 
               {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress sx={{ color: '#D0B198' }} /></Box>
               ) : orders.length === 0 ? (
                 <Box sx={{ textAlign: 'center', py: 5 }}>
-                  <Typography sx={{ fontSize: 36, mb: 1 }}>📦</Typography>
-                  <Typography sx={{ color: '#A0978E', mb: 2 }}>Henüz siparişiniz bulunmamaktadır.</Typography>
+                  <Typography sx={{ fontSize: 36, mb: 1 }}>{siteText("src/pages/AccountPage.tsx#e68ebc94437c", "📦")}</Typography>
+                  <Typography sx={{ color: '#A0978E', mb: 2 }}>{siteText("src/pages/AccountPage.tsx#bad56d15f24b", "Henüz siparişiniz bulunmamaktadır.")}</Typography>
                   <Button component={Link} to="/magaza" variant="contained" sx={{ bgcolor: '#D0B198', color: '#0E0C0A', fontWeight: 700, px: 3, py: 1, borderRadius: 999, '&:hover': { bgcolor: '#EED2BC' } }}>
-                    Alışverişe Başla
-                  </Button>
+                    {siteText("src/pages/AccountPage.tsx#466b08a67c3c", "Alışverişe Başla ")}</Button>
                 </Box>
               ) : (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -215,8 +215,8 @@ export default function AccountPage() {
                         <Typography sx={{ fontSize: 12, color: statusColor(o.status), fontWeight: 600 }}>{o.status}</Typography>
                       </Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography sx={{ fontSize: 12, color: '#A0978E' }}>{new Date(o.created_at).toLocaleDateString('tr-TR')} · {o.order_items?.length || 0} ürün</Typography>
-                        <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#D0B198' }}>{o.total.toLocaleString('tr-TR')} ₺</Typography>
+                        <Typography sx={{ fontSize: 12, color: '#A0978E' }}>{new Date(o.created_at).toLocaleDateString('tr-TR')} {siteText("src/pages/AccountPage.tsx#6e01f78b9eb4", "· ")}{o.order_items?.length || 0} {siteText("src/pages/AccountPage.tsx#8f90c1f536f3", "ürün")}</Typography>
+                        <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#D0B198' }}>{o.total.toLocaleString('tr-TR')} {siteText("src/pages/AccountPage.tsx#8416d7938c3d", "₺")}</Typography>
                       </Box>
                     </Box>
                   ))}
