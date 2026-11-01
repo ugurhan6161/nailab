@@ -18,10 +18,11 @@ Mağaza ürünleri ve fiyatları, Global Config deposundaki `products` anahtarı
    - `ADMIN_SESSION_SECRET`: en az 32 baytlık rastgele bir gizli değer. Yerel makinede `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` ile üretilebilir.
    - `VERCEL_TOKEN`: Global Config'i okuma/yazma yetkisi olan Vercel erişim token'ı.
    - `VERCEL_GLOBAL_CONFIG_ID`: Global Config ID'si (bu depo için `ecfg_hsu4rkyec8wyol2atp0qpslpy21g`).
-   - `VERCEL_TEAM_ID`: proje bir Vercel takımına bağlıysa takım ID'si.
+   - `VERCEL_TEAM_ID`: Global Config bir Vercel takımına aitse o takımın Team ID'si; kişisel Global Config için boş bırakın.
+   - `SUPABASE_URL`: admin sipariş API'sinin sunucuda kullanacağı Supabase proje URL'si. İstemci yapılandırmasındaki `VITE_SUPABASE_URL` ile aynı değerdir.
    - `SUPABASE_SERVICE_ROLE_KEY`: admin sipariş ekranının sunucu tarafında Supabase'e erişmesi için Service Role key'i. **Bu değişkeni `VITE_` önekiyle tanımlamayın.**
    - `GLOBAL_CONFIG` (veya `EDGE_CONFIG`): Vercel'in Global Config bağlantı değişkeni.
-4. `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `VERCEL_TOKEN` ve `SUPABASE_SERVICE_ROLE_KEY` yalnızca sunucu ortam değişkenleri olmalıdır; bunları kaynak koda veya `VITE_` değişkenlerine koymayın. Değişkenleri ekledikten sonra yeni bir deployment yayınlayın.
+4. `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `VERCEL_TOKEN` ve `SUPABASE_SERVICE_ROLE_KEY` yalnızca sunucu ortam değişkenleri olmalıdır; bunları kaynak koda veya `VITE_` değişkenlerine koymayın. `SUPABASE_URL` için de Vercel'de sunucu ortam değişkeni tanımlayın. Değişkenleri ekledikten sonra yeni bir deployment yayınlayın.
 5. `/admin/giris` adresinden `ADMIN_EMAIL` ve `ADMIN_PASSWORD` ile giriş yapın. HttpOnly oturum çerezi sunucu tarafından imzalanır. `/admin/icerik` ekranında ürün ekleyip düzenleyebilir/silebilir, site metinlerini sayfa adına göre arayıp düzenleyebilir ve tüm değişiklikleri tek seferde kaydedebilirsiniz. Kaydetme yeni bir deployment gerektirmez.
 
 Her ürün için `id`, `title`, `category`, `price`, `image` ve `description` alanları zorunludur. `price` sayı olarak TL tutarıdır (ör. `1250`); `rating`, `reviews`, `stock`, `badge` ve `isNew` isteğe bağlıdır. `stock` verilmezse 50 kabul edilir. Ürün kimlikleri benzersiz olmalıdır.

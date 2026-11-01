@@ -81,19 +81,39 @@ export async function updateGlobalConfigItems(
   const token = requiredEnvironment('VERCEL_TOKEN');
   const url = new URL(`https://api.vercel.com/v1/global-config/${encodeURIComponent(configId)}/items`);
   if (process.env.VERCEL_TEAM_ID) url.searchParams.set('teamId', process.env.VERCEL_TEAM_ID);
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  };
 
   const response = await fetch(url, {
     method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({
       items: items.map(({ key, value }) => ({ operation: 'upsert', key, value })),
     }),
   });
   if (!response.ok) {
     const message = await response.text();
+    if (response.status === 404) {
+      const configUrl = new URL(`https://api.vercel.com/v1/global-config/${encodeURIComponent(configId)}`);
+      if (process.env.VERCEL_TEAM_ID) configUrl.searchParams.set('teamId', process.env.VERCEL_TEAM_ID);
+      const configResponse = await fetch(configUrl, { headers });
+      if (configResponse.status === 404) {
+        throw new Error(
+          `Vercel Global Config bulunamadı. VERCEL_GLOBAL_CONFIG_ID ve varsa VERCEL_TEAM_ID değerlerini doğrulayın. API yanıtı: ${message}`,
+        );
+      }
+      if (!configResponse.ok) {
+        const configMessage = await configResponse.text();
+        throw new Error(
+          `Global Config doğrulanamadı (${configResponse.status}): ${configMessage}. Güncelleme yanıtı: ${message}`,
+        );
+      }
+      throw new Error(
+        `Global Config bulundu ancak öğe güncellemesi 404 döndürdü. API yanıtı: ${message}`,
+      );
+    }
     throw new Error(`Vercel Global Config güncellenemedi (${response.status}): ${message}`);
   }
 }

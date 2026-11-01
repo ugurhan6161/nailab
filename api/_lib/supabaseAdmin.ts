@@ -7,8 +7,13 @@ function requiredEnvironment(name: string): string {
 }
 
 export function getSupabaseAdminClient() {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  if (!supabaseUrl) {
+    throw new Error('SUPABASE_URL ortam değişkeni tanımlanmamış.');
+  }
+
   return createClient(
-    requiredEnvironment('VITE_SUPABASE_URL'),
+    supabaseUrl,
     requiredEnvironment('SUPABASE_SERVICE_ROLE_KEY'),
     { auth: { autoRefreshToken: false, persistSession: false } },
   );
