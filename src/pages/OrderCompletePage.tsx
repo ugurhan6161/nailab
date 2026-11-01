@@ -1,28 +1,89 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import {
-  Box, Typography, Container, Button, CircularProgress, Paper, Divider
+  Alert, Box, Button, CircularProgress, Container, Divider, Paper, Stack, Typography,
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import { supabase } from '../lib/supabase';
-import type { Order, OrderItem } from '../lib/supabase';
+import type { Order } from '../lib/supabase';
+import { openOrderReceipt } from '../lib/orderReceipt';
 import { siteText } from '../context/WebsiteDataContext';
 
+type ConfirmationState = {
+  order?: Order;
+  telegramNotified?: boolean;
+};
 
+const statusLabels: Record<string, string> = {
+  beklemede: 'Ön sipariş alındı',
+  'onaylandı': 'Sipariş onaylandı',
+  hazırlanıyor: 'Sipariş hazırlanıyor',
+  kargoda: 'Kargoya verildi',
+  'teslim edildi': 'Teslim edildi',
+  iptal: 'Sipariş iptal edildi',
+};
 
 export default function OrderCompletePage() {
   const { orderNumber } = useParams<{ orderNumber: string }>();
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const confirmationState = location.state as ConfirmationState | null;
+  const [order, setOrder] = useState<Order | null>(confirmationState?.order ?? null);
+  const [telegramNotified] = useState<boolean | undefined>(confirmationState?.telegramNotified);
+  const [loading, setLoading] = useState(Boolean(orderNumber && !confirmationState?.order));
+  const [loadError, setLoadError] = useState<string | null>(
+    orderNumber ? null : 'Sipariş kodu bulunamadı.',
+  );
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!orderNumber) return;
-    supabase.rpc('get_public_order', { p_order_number: orderNumber }).then(({ data }) => {
-      setOrder(data);
-      setLoading(false);
-    });
-  }, [orderNumber]);
+
+    let active = true;
+    void (async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_public_order', { p_order_number: orderNumber });
+        if (error) throw error;
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+          if (active && !confirmationState?.order) setLoadError('Sipariş kaydı kodla eşleşmedi. Sipariş takibinden yeniden deneyin.');
+          return;
+        }
+        if (active) {
+          setOrder((current) => ({ ...(data as Order), ...current, status: (data as Order).status }));
+        }
+      } catch (error) {
+        if (active && !confirmationState?.order) {
+          setLoadError(error instanceof Error ? `Sipariş bilgileri yüklenemedi: ${error.message}` : 'Sipariş bilgileri yüklenemedi.');
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+
+    return () => { active = false; };
+  }, [confirmationState?.order, orderNumber]);
+
+  const copyOrderNumber = async () => {
+    if (!orderNumber) return;
+    try {
+      await navigator.clipboard.writeText(orderNumber);
+      setActionMessage('Sipariş kodu panoya kopyalandı.');
+    } catch {
+      setActionMessage('Kopyalama izni alınamadı. Sipariş kodunu seçip elle kopyalayabilirsiniz.');
+    }
+  };
+
+  const downloadReceipt = () => {
+    if (!order || !orderNumber) return;
+    try {
+      openOrderReceipt(order, orderNumber);
+      setActionMessage('Sipariş formu açıldı. Yazdırma penceresinde “PDF olarak kaydet” seçeneğini kullanın.');
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Sipariş formu açılamadı.');
+    }
+  };
 
   if (loading) {
     return (
@@ -35,146 +96,110 @@ export default function OrderCompletePage() {
   return (
     <Box sx={{ bgcolor: '#0E0C0A', minHeight: '85vh', py: { xs: 5, md: 8 }, color: '#FFFFFF' }}>
       <Container maxWidth="md">
-        <Box sx={{ textAlign: 'center', mb: 5 }}>
-          <Box
-            sx={{
-              width: 90,
-              height: 90,
-              borderRadius: '50%',
-              bgcolor: 'rgba(56,142,60,0.18)',
-              border: '1px solid rgba(56,142,60,0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mx: 'auto',
-              mb: 2.5,
-            }}
-          >
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Box sx={{
+            width: 90, height: 90, borderRadius: '50%', bgcolor: 'rgba(56,142,60,0.18)',
+            border: '1px solid rgba(56,142,60,0.4)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', mx: 'auto', mb: 2.5,
+          }}>
             <CheckCircleIcon sx={{ fontSize: 52, color: '#4CAF50' }} />
           </Box>
-          <Typography
-            sx={{
-              fontFamily: 'Jost, Arial, sans-serif',
-              fontSize: { xs: 26, md: 36 },
-              fontWeight: 700,
-              color: '#FFFFFF',
-              mb: 1,
-            }}
-          >
-            {siteText("src/pages/OrderCompletePage.tsx#a82efac7bf49", "Siparişiniz Alındı! ")}</Typography>
-          <Typography sx={{ fontSize: '0.95rem', color: '#A0978E', mb: 1 }}>
-            {siteText("src/pages/OrderCompletePage.tsx#28c840156745", "Sipariş numaranız:")}{' '}
-            <Box component="strong" sx={{ color: '#D0B198', letterSpacing: '0.05em' }}>
-              {orderNumber}
-            </Box>
+          <Typography variant="h1" sx={{ fontSize: { xs: 26, md: 36 }, color: '#FFFFFF', mb: 1 }}>
+            {siteText("src/pages/OrderCompletePage.tsx#a82efac7bf49", "Siparişiniz Alındı!")}
           </Typography>
-          <Typography sx={{ fontSize: '0.85rem', color: '#777068' }}>
-            {siteText("src/pages/OrderCompletePage.tsx#446d164d2cae", "Sipariş detaylarınız kaydedildi. Ekibimiz sizinle en kısa sürede iletişime geçecektir. ")}</Typography>
+          <Typography sx={{ fontSize: '0.95rem', color: '#A0978E', mb: 1 }}>
+            Sipariş kodunuz:{' '}
+            <Box component="strong" sx={{ color: '#D0B198', letterSpacing: '0.05em' }}>{orderNumber}</Box>
+          </Typography>
+          <Typography sx={{ fontSize: '0.85rem', color: '#A0978E' }}>
+            Sipariş kodunuzu saklayın; hesabınıza giriş yapmadan da durumunu takip edebilirsiniz.
+          </Typography>
         </Box>
 
-        <Paper
-          sx={{
-            p: { xs: 3, md: 4 },
-            borderRadius: 3,
-            bgcolor: '#14110E',
-            border: '1px solid rgba(255,255,255,0.08)',
-            mb: 4,
-          }}
-        >
+        {loadError && <Alert severity="warning" sx={{ mb: 2 }}>{loadError}</Alert>}
+        {telegramNotified === false && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Siparişiniz kaydedildi ancak Telegram bildirimi gönderilemedi. Ekibimiz siparişinizi panelden görebilir.
+          </Alert>
+        )}
+        {actionMessage && <Alert severity="success" role="status" sx={{ mb: 2 }}>{actionMessage}</Alert>}
+
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 3 }}>
+          <Button fullWidth variant="outlined" startIcon={<ContentCopyIcon />} onClick={() => void copyOrderNumber()}>
+            Sipariş kodunu kopyala
+          </Button>
+          <Button fullWidth variant="outlined" startIcon={<DownloadOutlinedIcon />} onClick={downloadReceipt} disabled={!order}>
+            PDF indir
+          </Button>
+        </Stack>
+
+        <Paper sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, bgcolor: '#14110E', border: '1px solid rgba(255,255,255,0.08)', mb: 4 }}>
           {order ? (
             <>
-              <Typography sx={{ fontWeight: 700, fontSize: 16, color: '#FFFFFF', mb: 2 }}>
-                {siteText("src/pages/OrderCompletePage.tsx#0fd020952874", "Sipariş Özeti ")}</Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 3 }}>
-                <Box>
-                  <Typography sx={{ fontSize: 12, color: '#888888' }}>{siteText("src/pages/OrderCompletePage.tsx#d1d8bce3b297", "Müşteri")}</Typography>
-                  <Typography sx={{ fontWeight: 600, color: '#FFFFFF' }}>{order.guest_name}</Typography>
-                </Box>
-                <Box>
-                  <Typography sx={{ fontSize: 12, color: '#888888' }}>{siteText("src/pages/OrderCompletePage.tsx#fa6906d76ee9", "Telefon")}</Typography>
-                  <Typography sx={{ fontWeight: 600, color: '#FFFFFF' }}>{order.guest_phone}</Typography>
-                </Box>
-                <Box>
-                  <Typography sx={{ fontSize: 12, color: '#888888' }}>{siteText("src/pages/OrderCompletePage.tsx#48d51957f002", "Teslimat Adresi")}</Typography>
-                  <Typography sx={{ fontSize: 13, color: '#FFFFFF' }}>
-                    {order.shipping_address?.address}{siteText("src/pages/OrderCompletePage.tsx#0a07f6594619", ", ")}{order.shipping_address?.district}{siteText("src/pages/OrderCompletePage.tsx#8a5edab28263", "/")}{order.shipping_address?.city}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography sx={{ fontSize: 12, color: '#888888' }}>{siteText("src/pages/OrderCompletePage.tsx#461cc6c16f92", "Toplam Tutar")}</Typography>
-                  <Typography sx={{ fontWeight: 800, fontSize: 18, color: '#D0B198' }}>
-                    {order.total.toLocaleString('tr-TR')} {siteText("src/pages/OrderCompletePage.tsx#fb0484ae0c37", "₺ ")}</Typography>
-                </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap', mb: 2 }}>
+                <Typography variant="h2" sx={{ fontSize: '1.2rem', color: '#FFFFFF' }}>Sipariş özeti</Typography>
+                <Typography sx={{ color: '#D0B198', fontWeight: 700 }}>
+                  {statusLabels[order.status] ?? order.status}
+                </Typography>
               </Box>
-
-              <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)', mb: 3 }} />
-
-              <Box sx={{ mb: 2 }}>
-                <Typography sx={{ fontWeight: 700, fontSize: 14, color: '#FFFFFF', mb: 2 }}>
-                  {siteText("src/pages/OrderCompletePage.tsx#da9eebc9635d", "Sipariş Edilen Ürünler ")}</Typography>
-                {order.order_items?.map((item: OrderItem) => (
-                  <Box key={item.id} sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
-                    <Box
-                      component="img"
-                      src={item.product_image || undefined}
-                      alt={item.product_name}
-                      sx={{ width: 56, height: 56, borderRadius: 1.5, objectFit: 'cover', bgcolor: '#1A1613' }}
-                    />
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#FFFFFF' }}>
-                        {item.product_name}
+              {(order.guest_name || order.guest_phone || order.shipping_address?.address) && (
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 3 }}>
+                  {order.guest_name && <Box><Typography variant="caption" color="text.secondary">Müşteri</Typography><Typography fontWeight={600}>{order.guest_name}</Typography></Box>}
+                  {order.guest_phone && <Box><Typography variant="caption" color="text.secondary">Telefon</Typography><Typography fontWeight={600}>{order.guest_phone}</Typography></Box>}
+                  {order.shipping_address?.address && (
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Teslimat adresi</Typography>
+                      <Typography variant="body2">
+                        {[order.shipping_address.address, order.shipping_address.district, order.shipping_address.city].filter(Boolean).join(', ')}
                       </Typography>
-                      <Typography sx={{ fontSize: 12, color: '#888888' }}>
-                        {item.quantity} {siteText("src/pages/OrderCompletePage.tsx#2ac3e029f2ae", "x ")}{item.unit_price.toLocaleString('tr-TR')} {siteText("src/pages/OrderCompletePage.tsx#fb0484ae0c37", "₺ ")}</Typography>
                     </Box>
-                    <Typography sx={{ fontWeight: 700, fontSize: 14, color: '#FFFFFF' }}>
-                      {item.total_price.toLocaleString('tr-TR')} {siteText("src/pages/OrderCompletePage.tsx#fb0484ae0c37", "₺ ")}</Typography>
+                  )}
+                </Box>
+              )}
+              <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)', mb: 2 }} />
+              <Stack spacing={1.5} sx={{ mb: 2 }}>
+                {order.order_items?.map((item) => (
+                  <Box key={item.id} sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: 'center' }}>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography fontWeight={600}>{item.product_name}</Typography>
+                      <Typography variant="body2" color="text.secondary">{item.quantity} × {Number(item.unit_price).toLocaleString('tr-TR')} ₺</Typography>
+                    </Box>
+                    <Typography fontWeight={700} whiteSpace="nowrap">{Number(item.total_price).toLocaleString('tr-TR')} ₺</Typography>
                   </Box>
                 ))}
-              </Box>
+              </Stack>
+              <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)', mb: 2 }} />
+              <Stack spacing={0.75} sx={{ maxWidth: 320, ml: 'auto' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography color="text.secondary">Ara toplam</Typography>
+                  <Typography>{Number(order.subtotal).toLocaleString('tr-TR')} ₺</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography color="text.secondary">Kargo</Typography>
+                  <Typography>{Number(order.shipping_cost).toLocaleString('tr-TR')} ₺</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 1 }}>
+                  <Typography fontWeight={700}>Toplam</Typography>
+                  <Typography fontWeight={800} color="secondary.main">{Number(order.total).toLocaleString('tr-TR')} ₺</Typography>
+                </Box>
+              </Stack>
             </>
           ) : (
-            <Box sx={{ textAlign: 'center', py: 2 }}>
-              <Typography sx={{ color: '#A0978E', mb: 1 }}>
-                {siteText("src/pages/OrderCompletePage.tsx#7b4599b608a9", "Sipariş kaydınız sistemimize başarıyla ulaştı. ")}</Typography>
-              <Typography sx={{ fontSize: '0.85rem', color: '#777068' }}>
-                {siteText("src/pages/OrderCompletePage.tsx#467e868e6db9", "Siparişinizi yukarıdaki sipariş numarası ile dilediğiniz zaman takip edebilirsiniz. ")}</Typography>
-            </Box>
+            <Typography sx={{ color: '#A0978E', textAlign: 'center' }}>
+              Sipariş detayları şu an yüklenemedi. Kodunuzla sipariş takip alanından tekrar sorgulayabilirsiniz.
+            </Typography>
           )}
         </Paper>
 
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Button
-            component={Link}
-            to="/magaza"
-            variant="contained"
-            endIcon={<ArrowForwardIcon />}
-            sx={{
-              bgcolor: '#FFFFFF',
-              color: '#000000',
-              borderRadius: 50,
-              px: 3.5,
-              py: 1.2,
-              fontWeight: 700,
-              '&:hover': { bgcolor: '#F5ECE3' },
-            }}
-          >
-            {siteText("src/pages/OrderCompletePage.tsx#2cbd9c6fb82a", "Alışverişe Devam Et ")}</Button>
-          <Button
-            component={Link}
-            to="/siparis-takip"
-            variant="outlined"
-            sx={{
-              borderColor: 'rgba(255,255,255,0.2)',
-              color: '#FFFFFF',
-              borderRadius: 50,
-              px: 3,
-              py: 1.2,
-              fontWeight: 600,
-              '&:hover': { borderColor: '#FFFFFF', bgcolor: 'rgba(255,255,255,0.06)' },
-            }}
-          >
-            {siteText("src/pages/OrderCompletePage.tsx#7a22aa5c988b", "Sipariş Takibi ")}</Button>
+          <Button component={Link} to="/magaza" variant="contained" endIcon={<ArrowForwardIcon />}
+            sx={{ bgcolor: '#FFFFFF', color: '#000000', borderRadius: 50, px: 3.5, py: 1.2, '&:hover': { bgcolor: '#F5ECE3' } }}>
+            {siteText("src/pages/OrderCompletePage.tsx#2cbd9c6fb82a", "Alışverişe Devam Et")}
+          </Button>
+          <Button component={Link} to="/siparis-takip" variant="outlined"
+            sx={{ borderColor: 'rgba(255,255,255,0.2)', color: '#FFFFFF', borderRadius: 50, px: 3, py: 1.2 }}>
+            Sipariş durumunu takip et
+          </Button>
         </Box>
       </Container>
     </Box>

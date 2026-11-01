@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
-  Alert, Box, Button, Chip, Container, Grid,
-  IconButton, Snackbar, Stack, Tab, Tabs, Typography, Skeleton,
+  Badge, Box, Button, Chip, Container, Grid,
+  IconButton, Stack, Tab, Tabs, Typography, Skeleton,
 } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import type { Product } from '../lib/supabase';
@@ -78,7 +79,7 @@ function ProductVisual({ imageUrl, name }: { imageUrl: string; name: string }) {
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, itemCount } = useCart();
   const { products, loading: catalogLoading, error: catalogError } = useProducts();
   const configuredProduct = products.find((item) => item.id === id || item.databaseId === id);
   const product: Product | null = configuredProduct ? toAppProduct(configuredProduct) : null;
@@ -88,7 +89,7 @@ export default function ProductDetailPage() {
   const nailForms = getEditableNailForms();
   const [quantity, setQuantity] = useState(1);
   const [tab, setTab] = useState(0);
-  const [toast, setToast] = useState(false);
+  const [showCartLink, setShowCartLink] = useState(false);
 
   if (loading) {
     return (
@@ -137,11 +138,11 @@ export default function ProductDetailPage() {
 
   const handleAdd = () => {
     addToCart(product, quantity);
-    setToast(true);
+    setShowCartLink(true);
   };
 
   return (
-    <Box sx={{ bgcolor: '#090807', color: '#FFFFFF', minHeight: '100vh', pb: 10, pt: 3 }}>
+    <Box sx={{ bgcolor: '#090807', color: '#FFFFFF', minHeight: '100vh', pb: canBuy ? 13 : 10, pt: 3 }}>
       <Container maxWidth="lg">
         {/* Top Back Action */}
         <Box sx={{ mb: 3 }}>
@@ -217,58 +218,6 @@ export default function ProductDetailPage() {
               <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
                 {siteText("src/pages/ProductDetailPage.tsx#33ae2921b98b", "KDV dahil • Resmi Distribütör Garantili ")}</Typography>
             </Box>
-
-            <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
-              {canBuy && (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: 999,
-                    bgcolor: 'rgba(255,255,255,0.05)',
-                  }}
-                >
-                  <IconButton
-                    aria-label={siteText("src/pages/ProductDetailPage.tsx#22de0ac272e0", "Adedi azalt")}
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    sx={{ color: '#FFFFFF' }}
-                  >
-                    <RemoveIcon fontSize="small" />
-                  </IconButton>
-                  <Typography sx={{ minWidth: 32, textAlign: 'center', fontWeight: 600, color: '#FFFFFF' }}>
-                    {quantity}
-                  </Typography>
-                  <IconButton
-                    aria-label={siteText("src/pages/ProductDetailPage.tsx#2af12e931aaf", "Adedi artır")}
-                    onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
-                    sx={{ color: '#FFFFFF' }}
-                  >
-                    <AddIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-              )}
-              <Button
-                variant="contained"
-                size="large"
-                fullWidth
-                disabled={!canBuy}
-                startIcon={<ShoppingBagOutlinedIcon />}
-                onClick={handleAdd}
-                sx={{
-                  bgcolor: '#FFFFFF',
-                  color: '#000000',
-                  fontWeight: 700,
-                  fontSize: '0.98rem',
-                  borderRadius: 999,
-                  '&:hover': { bgcolor: '#F5ECE3' },
-                }}
-              >
-                {canBuy
-                  ? siteText('src/pages/ProductDetailPage.tsx#add-to-cart', 'Sepete Ekle')
-                  : siteText('src/pages/ProductDetailPage.tsx#out-of-stock', 'Stokta Yok')}
-              </Button>
-            </Stack>
 
             <Stack direction="row" spacing={1.5} sx={{ mt: 2.5, color: 'rgba(255,255,255,0.6)' }} alignItems="center">
               <LocalShippingOutlinedIcon sx={{ fontSize: 18, color: '#D0B198' }} />
@@ -373,25 +322,91 @@ export default function ProductDetailPage() {
         </Box>
       </Container>
 
-      <Snackbar
-        open={toast}
-        autoHideDuration={2400}
-        onClose={() => setToast(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setToast(false)}
-          severity="success"
+      {canBuy && (
+        <Box
           sx={{
-            width: '100%',
-            bgcolor: '#FFFFFF',
-            color: '#000000',
-            fontWeight: 700,
-            borderRadius: 50,
+            position: 'fixed',
+            left: '50%',
+            bottom: 'calc(12px + env(safe-area-inset-bottom))',
+            transform: 'translateX(-50%)',
+            zIndex: 1200,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            width: 'min(calc(100vw - 24px), 580px)',
+            px: 0.5,
           }}
         >
-          {quantity} {siteText("src/pages/ProductDetailPage.tsx#161fe6652531", "adet ")}{product.name} {siteText("src/pages/ProductDetailPage.tsx#d1bf288902ef", "sepete eklendi! ")}</Alert>
-      </Snackbar>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flex: '0 0 132px',
+              height: 58,
+              border: '1px solid rgba(255,255,255,0.22)',
+              borderRadius: 999,
+              bgcolor: 'rgba(20,17,14,0.96)',
+            }}
+          >
+            <IconButton
+              aria-label={siteText("src/pages/ProductDetailPage.tsx#22de0ac272e0", "Adedi azalt")}
+              onClick={() => setQuantity((current) => Math.max(1, current - 1))}
+              sx={{ color: '#FFFFFF', width: 44, height: 44 }}
+            >
+              <RemoveIcon fontSize="small" />
+            </IconButton>
+            <Typography aria-live="polite" sx={{ minWidth: 24, textAlign: 'center', fontWeight: 600, color: '#FFFFFF' }}>
+              {quantity}
+            </Typography>
+            <IconButton
+              aria-label={siteText("src/pages/ProductDetailPage.tsx#2af12e931aaf", "Adedi artır")}
+              onClick={() => setQuantity((current) => Math.min(product.stock, current + 1))}
+              sx={{ color: '#FFFFFF', width: 44, height: 44 }}
+            >
+              <AddIcon fontSize="small" />
+            </IconButton>
+          </Box>
+          <Button
+            variant="contained"
+            size="large"
+            fullWidth
+            startIcon={<ShoppingBagOutlinedIcon />}
+            onClick={handleAdd}
+            sx={{
+              bgcolor: '#FFFFFF',
+              color: '#000000',
+              height: 58,
+              fontWeight: 700,
+              fontSize: '0.98rem',
+              borderRadius: 999,
+              '&:hover': { bgcolor: '#F5ECE3' },
+            }}
+          >
+            {siteText('src/pages/ProductDetailPage.tsx#add-to-cart', 'Sepete Ekle')}
+          </Button>
+        </Box>
+      )}
+      {showCartLink && (
+        <Button
+          component={Link}
+          to="/sepet"
+          variant="contained"
+          color="secondary"
+          startIcon={<Badge badgeContent={itemCount} color="error"><ShoppingCartOutlinedIcon /></Badge>}
+          sx={{
+            position: 'fixed',
+            top: 16,
+            right: 16,
+            zIndex: 1200,
+            bgcolor: 'secondary.main',
+            color: 'secondary.contrastText',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+          }}
+        >
+          Sepete git
+        </Button>
+      )}
     </Box>
   );
 }

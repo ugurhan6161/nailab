@@ -17,6 +17,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderCompletePage from './pages/OrderCompletePage';
+import OrderTrackingPage from './pages/OrderTrackingPage';
 import AuthPage from './pages/AuthPage';
 import AccountPage from './pages/AccountPage';
 import OrdersPage from './pages/OrdersPage';
@@ -75,6 +76,7 @@ function AppRoutes() {
                     <Route path="/sepet" element={<CartPage />} />
                     <Route path="/odeme" element={<CheckoutPage />} />
                     <Route path="/siparis-tamamlandi/:orderNumber" element={<OrderCompletePage />} />
+                    <Route path="/siparis-takip" element={<OrderTrackingPage />} />
 
                     {/* 6. Customer Account & Auth */}
                     <Route path="/giris" element={<AuthPage />} />

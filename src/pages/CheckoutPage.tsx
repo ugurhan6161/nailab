@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Alert, Box, Button, Container, Divider, Grid, Paper, TextField, Typography, Stack,
 } from '@mui/material';
-import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import VerifiedIcon from '@mui/icons-material/Verified';
@@ -13,10 +13,6 @@ import { useProducts } from '../context/ProductsContext';
 import { supabase } from '../lib/supabase';
 import type { Order } from '../lib/supabase';
 import { siteText } from '../context/WebsiteDataContext';
-
-
-
-const WHATSAPP_NUMBER = '908500000000';
 
 type CheckoutForm = {
   name: string;
@@ -63,50 +59,40 @@ export default function CheckoutPage() {
     }
     setLoading(true);
     try {
-      const { data, error: orderError } = await supabase.rpc('create_store_order', {
-        p_guest_name: form.name.trim(),
-        p_guest_phone: form.phone.trim(),
-        p_guest_email: user?.email ?? null,
-        p_shipping_address: {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw new Error(`Oturum doğrulanamadı: ${sessionError.message}`);
+      const response = await fetch('/api/orders/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(sessionData.session?.access_token
+            ? { Authorization: `Bearer ${sessionData.session.access_token}` }
+            : {}),
+        },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          email: user?.email ?? null,
           address: form.address.trim(),
           city: form.city.trim(),
           district: form.district.trim(),
-        },
-        p_notes: form.notes.trim(),
-        p_items: items.map((item) => ({
-          product_id: item.product.id,
-          quantity: item.quantity,
-        })),
+          notes: form.notes.trim(),
+          items: items.map((item) => ({
+            product_id: item.product.id,
+            quantity: item.quantity,
+          })),
+        }),
       });
-      if (orderError) throw new Error(orderError.message);
-      if (!data || typeof data !== 'object') throw new Error('Supabase sipariş kaydı beklenen biçimde yanıt vermedi.');
-
-      const order = data as Order;
-      const itemsText = (order.order_items ?? [])
-        .map((i) => siteText(
-          'src/pages/CheckoutPage.tsx#whatsapp-item',
-          '• {quantity}x {product} - {price} ₺',
-        )
-          .replace('{quantity}', String(i.quantity))
-          .replace('{product}', i.product_name)
-          .replace('{price}', i.total_price.toLocaleString('tr-TR')))
-        .join('%0A');
-      const msg = siteText(
-        'src/pages/CheckoutPage.tsx#whatsapp-message',
-        'Merhaba, NAILAB web sitenizden yeni bir sipariş verdim:%0A%0A*Sipariş No:* {order_number}%0A*Müşteri:* {customer}%0A*Telefon:* {phone}%0A*Adres:* {address}, {district}/{city}%0A%0A*Ürünler:*%0A{items}%0A%0A*Toplam Tutar:* {total} ₺',
-      )
-        .replace('{order_number}', order.order_number)
-        .replace('{customer}', form.name)
-        .replace('{phone}', form.phone)
-        .replace('{address}', form.address)
-        .replace('{district}', form.district)
-        .replace('{city}', form.city)
-        .replace('{items}', itemsText)
-        .replace('{total}', order.total.toLocaleString('tr-TR'));
+      const result = await response.json() as { order?: Order; telegramNotified?: boolean; error?: string };
+      if (!response.ok) throw new Error(result.error || 'Sipariş oluşturulamadı.');
+      if (!result.order || typeof result.order.order_number !== 'string') {
+        throw new Error('Sipariş servisi beklenen biçimde yanıt vermedi.');
+      }
 
       clearCart();
-      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
-      navigate(`/siparis-tamamlandi/${order.order_number}`);
+      navigate(`/siparis-tamamlandi/${result.order.order_number}`, {
+        state: { order: result.order, telegramNotified: result.telegramNotified === true },
+      });
     } catch (checkoutError) {
       setError(checkoutError instanceof Error ? `Sipariş oluşturulamadı: ${checkoutError.message}` : 'Sipariş oluşturulamadı.');
     } finally {
@@ -305,28 +291,28 @@ export default function CheckoutPage() {
                 variant="contained"
                 size="large"
                 disabled={loading || catalogLoading || Boolean(catalogError)}
-                startIcon={<WhatsAppIcon />}
+                startIcon={<ShoppingBagOutlinedIcon />}
                 onClick={handleCheckout}
                 sx={{
-                  bgcolor: '#25D366',
-                  color: '#FFFFFF',
+                  bgcolor: '#FFFFFF',
+                  color: '#000000',
                   borderRadius: 50,
                   py: 1.4,
                   fontWeight: 700,
                   fontSize: '0.98rem',
-                  boxShadow: '0 8px 24px rgba(37,211,102,0.3)',
-                  '&:hover': { bgcolor: '#20BA5A' },
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                  '&:hover': { bgcolor: '#F5ECE3' },
                 }}
               >
                 {loading
-                  ? siteText('src/pages/CheckoutPage.tsx#submitting', 'İşleniyor…')
-                  : siteText('src/pages/CheckoutPage.tsx#submit', 'WhatsApp ile Siparişi Onayla')}
+                  ? 'Oluşturuluyor…'
+                  : 'Ön sipariş oluştur'}
               </Button>
 
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.8, mt: 2.5 }}>
                 <VerifiedIcon sx={{ fontSize: 15, color: '#D0B198' }} />
                 <Typography sx={{ fontSize: '0.75rem', color: '#A0978E', textAlign: 'center' }}>
-                  {siteText("src/pages/CheckoutPage.tsx#4a481b872bb6", "Siparişiniz doğrudan Naillabs uzman ekibine iletilir. ")}</Typography>
+                  {siteText("src/pages/CheckoutPage.tsx#4a481b872bb6", "                  Siparişiniz güvenle kaydedilir ve ekibimize Telegram üzerinden bildirilir. ")}</Typography>
               </Box>
             </Paper>
           </Grid>

@@ -7,7 +7,7 @@ import {
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
-import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { supabase } from '../lib/supabase';
 import type { Order } from '../lib/supabase';
@@ -72,7 +72,7 @@ export default function AdminOrdersPage() {
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
       <Box sx={{ bgcolor: 'background.paper', py: 2 }}>
         <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}><WhatsAppIcon sx={{ color: 'secondary.main' }} /><Typography variant="h2" sx={{ color: 'text.primary', fontSize: { xs: '1.1rem', md: '1.35rem' } }}>WhatsApp siparişleri</Typography></Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}><ShoppingBagOutlinedIcon sx={{ color: 'secondary.main' }} /><Typography variant="h2" sx={{ color: 'text.primary', fontSize: { xs: '1.1rem', md: '1.35rem' } }}>Ön siparişler</Typography></Box>
           <Button onClick={handleSignOut} size="small" variant="outlined" color="secondary">Çıkış</Button>
         </Container>
       </Box>
@@ -87,13 +87,13 @@ export default function AdminOrdersPage() {
         </Stack>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 2, mb: 3 }}>
-          <Box><Typography variant="h1" sx={{ fontSize: { xs: '2rem', md: '2.7rem' } }}>Siparişler</Typography><Typography color="text.secondary" sx={{ mt: 0.5 }}>WhatsApp’tan gelen talepleri tek yerden yönetin.</Typography></Box>
+          <Box><Typography variant="h1" sx={{ fontSize: { xs: '2rem', md: '2.7rem' } }}>Siparişler</Typography><Typography color="text.secondary" sx={{ mt: 0.5 }}>Web sitesinden oluşturulan ön siparişleri yönetin.</Typography></Box>
           <Chip label={`${pendingCount} yeni`} color="secondary" sx={{ fontWeight: 700 }} />
         </Box>
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         {loading ? <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}><CircularProgress color="secondary" /></Box> : orders.length === 0 ? (
-          <Paper sx={{ p: 6, textAlign: 'center' }}><WhatsAppIcon sx={{ fontSize: 42, color: 'secondary.main', mb: 1 }} /><Typography color="text.secondary">Henüz WhatsApp siparişi yok.</Typography></Paper>
+          <Paper sx={{ p: 6, textAlign: 'center' }}><ShoppingBagOutlinedIcon sx={{ fontSize: 42, color: 'secondary.main', mb: 1 }} /><Typography color="text.secondary">Henüz ön sipariş yok.</Typography></Paper>
         ) : (
           <Stack spacing={2}>
             {orders.map((order) => <Paper key={order.id} sx={{ p: { xs: 2, sm: 3 } }}>

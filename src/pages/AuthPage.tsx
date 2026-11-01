@@ -13,6 +13,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import { useAuth } from '../context/AuthContext';
 import { siteText } from '../context/WebsiteDataContext';
+import OrderTrackingForm from '../components/OrderTrackingForm';
 
 
 
@@ -433,6 +434,10 @@ export default function AuthPage() {
             >
               {siteText("src/pages/AuthPage.tsx#220f19f114e8", "Yönetici Girişi ")}</Link>
           </Box>
+        </Box>
+
+        <Box sx={{ mt: 3 }}>
+          <OrderTrackingForm compact />
         </Box>
       </Box>
     </Box>
