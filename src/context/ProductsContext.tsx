@@ -48,7 +48,23 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
 
     fetch('/api/products', { cache: 'no-store', signal: controller.signal })
       .then(async (response) => {
-        const body: unknown = await response.json();
+        const contentType = response.headers.get('content-type') ?? '';
+        const responseText = await response.text();
+        let body: unknown;
+        if (contentType.includes('application/json')) {
+          try {
+            body = JSON.parse(responseText);
+          } catch {
+            throw new Error('Ürün kataloğu API yanıtı geçerli JSON değil.');
+          }
+        } else {
+          const detail = responseText.trim();
+          throw new Error(
+            detail
+              ? `Ürün API hatası (${response.status}): ${detail.slice(0, 240)}`
+              : `Ürün API hatası (${response.status}); Vercel Function loglarını kontrol edin.`
+          );
+        }
         if (!response.ok) {
           const message =
             typeof body === 'object' &&

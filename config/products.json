@@ -1,4 +1,5 @@
-[
+{
+  "products": [
   {
     "id": "nailab-egitim-kiti",
     "title": "NAILAB™ Profesyonel Eğitim Kiti",
@@ -95,4 +96,5 @@
     "badge": "Sertifikalı",
     "isNew": true
   }
-]
+  ]
+}

@@ -9,8 +9,8 @@ Mağaza ürünleri ve fiyatları, Global Config deposundaki `products` anahtarı
 ### Vercel kurulumu
 
 1. Vercel projesinde `nailab-global-config` deposunu projeye bağlayın. Proje ortam değişkenlerinde `GLOBAL_CONFIG` bağlantı değişkeninin oluştuğunu doğrulayın. Değişkeni `VITE_` önekiyle eklemeyin.
-2. Global Config deposunda `products` adlı bir anahtar oluşturun. Değer olarak [`config/products.json`](./config/products.json) dosyasının tamamındaki JSON dizisini yapıştırın. Başlangıç kataloğu mevcut 8 mağaza ürününü içerir.
-3. Kaydedin ve uygulamanın bir deployment'ını yayınlayın. Sonraki fiyat/ürün güncellemeleri için Global Config'teki `products` değerini düzenleyip kaydetmeniz yeterlidir; yeni deployment gerekmez. Mağazayı yenileyerek güncel kataloğu alın.
+2. Global Config düzenleyicisindeki JSON nesnesinin tamamını [`config/products.json`](./config/products.json) ile değiştirin. En üst düzey değer `{ "products": [...] }` biçiminde bir nesne olmalıdır; tek başına ürün dizisi (`[...]`) kabul edilmez. Başlangıç kataloğu mevcut 8 mağaza ürününü içerir.
+3. Kaydedin ve uygulamanın bir deployment'ını yayınlayın. Sonraki fiyat/ürün güncellemeleri için Global Config'teki `products` dizisini düzenleyip kaydetmeniz yeterlidir; yeni deployment gerekmez. Mağazayı yenileyerek güncel kataloğu alın.
 
 Her ürün için `id`, `title`, `category`, `price`, `image` ve `description` alanları zorunludur. `price` sayı olarak TL tutarıdır (ör. `1250`); `rating`, `reviews`, `stock`, `badge` ve `isNew` isteğe bağlıdır. `stock` verilmezse 50 kabul edilir. Ürün kimlikleri benzersiz olmalıdır.
 
