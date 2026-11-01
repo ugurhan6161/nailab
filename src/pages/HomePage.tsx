@@ -5,6 +5,7 @@ import VerifiedIcon from '@mui/icons-material/Verified';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { siteText } from '../context/WebsiteDataContext';
 import { useAuth } from '../context/AuthContext';
+import LiquidMetalButton from '../components/LiquidMetalButton';
 
 
 
@@ -273,68 +274,43 @@ export default function HomePage() {
               transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
-            <Button
+            <LiquidMetalButton
               fullWidth
               onClick={handleGetStart}
               sx={{
                 height: 52,
                 borderRadius: 50,
-                bgcolor: '#FFFFFF',
-                color: '#000000',
                 fontSize: '1rem',
                 fontWeight: 700,
                 textTransform: 'none',
                 letterSpacing: '0.01em',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-                transition: 'all 0.25s ease',
-                '&:hover': {
-                  bgcolor: '#F5ECE3',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 12px 28px rgba(0,0,0,0.6)',
-                },
-                '&:active': {
-                  transform: 'scale(0.98)',
-                },
               }}
             >
               {animating
                 ? siteText('src/pages/HomePage.tsx#starting', 'Mağazaya Giriliyor…')
                 : siteText('src/pages/HomePage.tsx#start', 'Hemen Başla')}
-            </Button>
+            </LiquidMetalButton>
           </Box>
 
           {/* Action 2: "Giriş Yap / Hesap Oluştur" */}
           <Box className="fade-in-up-4">
-            <Button
+            <LiquidMetalButton
               fullWidth
               component={Link}
               to={user ? '/hesabim' : '/giris'}
               sx={{
                 height: 52,
                 borderRadius: 50,
-                bgcolor: 'transparent',
-                border: '1.5px solid rgba(255,255,255,0.85)',
-                color: '#FFFFFF',
                 fontSize: '1rem',
                 fontWeight: 700,
                 textTransform: 'none',
                 letterSpacing: '0.01em',
-                backdropFilter: 'blur(4px)',
-                transition: 'all 0.25s ease',
-                '&:hover': {
-                  bgcolor: 'rgba(255,255,255,0.15)',
-                  borderColor: '#FFFFFF',
-                  transform: 'translateY(-2px)',
-                },
-                '&:active': {
-                  transform: 'scale(0.98)',
-                },
               }}
             >
               {user
                 ? siteText('src/pages/HomePage.tsx#account', 'Hesabım')
                 : siteText("src/pages/HomePage.tsx#044855024139", "Giriş Yap / Hesap Oluştur ")}
-            </Button>
+            </LiquidMetalButton>
           </Box>
         </Container>
       </Box>

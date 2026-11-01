@@ -7,6 +7,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
+import LiquidMetalButton from '../components/LiquidMetalButton';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductsContext';
 import { siteText } from '../context/WebsiteDataContext';
@@ -62,20 +63,18 @@ export default function CartPage() {
           <Typography sx={{ color: 'rgba(255,255,255,0.6)', mt: 1, mb: 4, fontSize: '0.95rem' }}>
             {siteText("src/pages/CartPage.tsx#b9fd34ad6aa8", "Henüz sepetinize bir ürün eklemediniz. ")}</Typography>
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-            <Button
+            <LiquidMetalButton
               onClick={() => navigate(-1)}
               variant="contained"
               size="large"
               sx={{
-                bgcolor: '#FFFFFF',
-                color: '#000000',
                 borderRadius: 50,
                 px: 4,
                 fontWeight: 700,
-                '&:hover': { bgcolor: '#F5ECE3' },
               }}
             >
-              {siteText("src/pages/CartPage.tsx#f3d8f7b1cbca", "Geri Dön ")}</Button>
+              {siteText("src/pages/CartPage.tsx#f3d8f7b1cbca", "Geri Dön ")}
+            </LiquidMetalButton>
           </Box>
         </Box>
       </Box>
@@ -341,7 +340,7 @@ export default function CartPage() {
                 >
                   {total.toLocaleString('tr-TR')} {siteText("src/pages/CartPage.tsx#fb0484ae0c37", "₺ ")}</Typography>
               </Box>
-              <Button
+              <LiquidMetalButton
                 fullWidth
                 variant="contained"
                 size="large"
@@ -349,14 +348,11 @@ export default function CartPage() {
                 onClick={() => navigate('/odeme')}
                 disabled={catalogLoading || Boolean(catalogError)}
                 sx={{
-                  bgcolor: '#FFFFFF',
-                  color: '#000000',
                   borderRadius: 50,
                   fontWeight: 700,
-                  '&:hover': { bgcolor: '#F5ECE3' },
                 }}
               >
-                {siteText("src/pages/CartPage.tsx#258c96ced92d", "Sonraki Adıma Geç ")}</Button>
+                {siteText("src/pages/CartPage.tsx#258c96ced92d", "Sonraki Adıma Geç ")}</LiquidMetalButton>
               <Button
                 onClick={() => navigate('/magaza')}
                 fullWidth

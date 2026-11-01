@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import {
-  Alert, Box, Button, CircularProgress, Divider, Paper, Stack, TextField, Typography,
+  Alert, Box, CircularProgress, Divider, Paper, Stack, TextField, Typography,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import LiquidMetalButton from './LiquidMetalButton';
 import { supabase } from '../lib/supabase';
 import type { Order } from '../lib/supabase';
 
@@ -79,16 +80,15 @@ export default function OrderTrackingForm({ compact = false }: Props) {
             onChange={(event) => setOrderNumber(event.target.value)}
             inputProps={{ 'aria-describedby': error ? 'order-tracking-error' : undefined }}
           />
-          <Button
+          <LiquidMetalButton
             type="submit"
             variant="contained"
-            color="secondary"
             disabled={loading}
             startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <SearchIcon />}
             sx={{ minWidth: { sm: 150 } }}
           >
             {loading ? 'Aranıyor…' : 'Siparişi bul'}
-          </Button>
+          </LiquidMetalButton>
         </Stack>
       </Box>
       {error && <Alert id="order-tracking-error" severity="error" role="alert">{error}</Alert>}

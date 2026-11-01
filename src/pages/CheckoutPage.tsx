@@ -7,6 +7,7 @@ import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import LiquidMetalButton from '../components/LiquidMetalButton';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../context/ProductsContext';
@@ -328,7 +329,7 @@ function CheckoutPageContent() {
                 </Box>
               </Stack>
 
-              <Button
+              <LiquidMetalButton
                 fullWidth
                 variant="contained"
                 size="large"
@@ -339,20 +340,16 @@ function CheckoutPageContent() {
                   : <ShoppingBagOutlinedIcon />}
                 onClick={handleCheckout}
                 sx={{
-                  bgcolor: '#FFFFFF',
-                  color: '#000000',
                   borderRadius: 50,
                   py: 1.4,
                   fontWeight: 700,
                   fontSize: '0.98rem',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-                  '&:hover': { bgcolor: '#F5ECE3' },
                 }}
               >
                 {loading
                   ? 'Sipariş gönderiliyor…'
                   : 'Ön sipariş oluştur'}
-              </Button>
+              </LiquidMetalButton>
 
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.8, mt: 2.5 }}>
                 <VerifiedIcon sx={{ fontSize: 15, color: '#D0B198' }} />

@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import LiquidMetalButton from '../components/LiquidMetalButton';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import { supabase } from '../lib/supabase';
@@ -194,10 +195,10 @@ export default function OrderCompletePage() {
         </Paper>
 
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Button component={Link} to="/magaza" variant="contained" endIcon={<ArrowForwardIcon />}
-            sx={{ bgcolor: '#FFFFFF', color: '#000000', borderRadius: 50, px: 3.5, py: 1.2, '&:hover': { bgcolor: '#F5ECE3' } }}>
+          <LiquidMetalButton component={Link} to="/magaza" variant="contained" endIcon={<ArrowForwardIcon />}
+            sx={{ borderRadius: 50, px: 3.5, py: 1.2 }}>
             {siteText("src/pages/OrderCompletePage.tsx#2cbd9c6fb82a", "Alışverişe Devam Et")}
-          </Button>
+          </LiquidMetalButton>
           <Button component={Link} to="/siparis-takip" variant="outlined"
             sx={{ borderColor: 'rgba(255,255,255,0.2)', color: '#FFFFFF', borderRadius: 50, px: 3, py: 1.2 }}>
             Sipariş durumunu takip et

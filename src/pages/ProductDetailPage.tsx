@@ -15,6 +15,7 @@ import type { Product } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductsContext';
 import NailFormIllustration from '../components/NailFormIllustration';
+import LiquidMetalButton from '../components/LiquidMetalButton';
 import {
   getEditableKitContent, getEditableFaq, getEditableNailForms,
 } from '../lib/productContent';
@@ -367,45 +368,39 @@ export default function ProductDetailPage() {
               <AddIcon fontSize="small" />
             </IconButton>
           </Box>
-          <Button
+          <LiquidMetalButton
             variant="contained"
             size="large"
             fullWidth
             startIcon={<ShoppingBagOutlinedIcon />}
             onClick={handleAdd}
             sx={{
-              bgcolor: '#FFFFFF',
-              color: '#000000',
               height: 58,
               fontWeight: 700,
               fontSize: '0.98rem',
               borderRadius: 999,
-              '&:hover': { bgcolor: '#F5ECE3' },
             }}
           >
             {siteText('src/pages/ProductDetailPage.tsx#add-to-cart', 'Sepete Ekle')}
-          </Button>
+          </LiquidMetalButton>
         </Box>
       )}
       {showCartLink && (
-        <Button
+        <LiquidMetalButton
           component={Link}
           to="/sepet"
           variant="contained"
-          color="secondary"
           startIcon={<Badge badgeContent={itemCount} color="error"><ShoppingCartOutlinedIcon /></Badge>}
           sx={{
             position: 'fixed',
             top: 16,
             right: 16,
             zIndex: 1200,
-            bgcolor: 'secondary.main',
-            color: 'secondary.contrastText',
             boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
           }}
         >
           Sepete git
-        </Button>
+        </LiquidMetalButton>
       )}
     </Box>
   );
