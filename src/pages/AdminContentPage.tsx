@@ -187,13 +187,13 @@ export default function AdminContentPage() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#F8F6F3', minHeight: '100vh' }}>
-      <Box sx={{ bgcolor: '#000000', py: 2.5 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
+      <Box sx={{ bgcolor: 'background.paper', py: 2.5 }}>
         <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 20, fontWeight: 700, color: '#FFFFFF' }}>
+          <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 20, fontWeight: 700, color: 'text.primary' }}>
             İçerik Yönetimi
           </Typography>
-          <Button onClick={handleLogout} size="small" variant="outlined" sx={{ color: '#EED2BC' }}>Çıkış</Button>
+          <Button onClick={handleLogout} size="small" variant="outlined" color="secondary">Çıkış</Button>
         </Container>
       </Box>
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -204,7 +204,7 @@ export default function AdminContentPage() {
             { label: 'Siparişler', href: '/admin/siparisler', icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 17 }} /> },
           ].map((item) => (
             <Button key={item.href} component={Link} to={item.href} startIcon={item.icon}
-              variant={item.href === '/admin/icerik' ? 'contained' : 'outlined'} size="small">
+              variant={item.href === '/admin/icerik' ? 'contained' : 'outlined'} color="secondary" size="small">
               {item.label}
             </Button>
           ))}
@@ -216,7 +216,7 @@ export default function AdminContentPage() {
             <Typography color="text.secondary">Değişiklikleri kaydettiğinizde Vercel Global Config anında güncellenir.</Typography>
           </Box>
           <Button variant="contained" startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <SaveOutlinedIcon />}
-            onClick={save} disabled={saving || !websiteDataLoaded || Boolean(productsError)} sx={{ bgcolor: '#000000' }}>
+            onClick={save} disabled={saving || !websiteDataLoaded || Boolean(productsError)} color="secondary">
             {saving ? 'Kaydediliyor…' : 'Tüm değişiklikleri kaydet'}
           </Button>
         </Box>

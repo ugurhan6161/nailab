@@ -83,10 +83,10 @@ export default function AdminOrdersPage() {
 
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
-      <Box sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', py: 2 }}>
+      <Box sx={{ bgcolor: 'background.paper', py: 2 }}>
         <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}><WhatsAppIcon sx={{ color: 'secondary.light' }} /><Typography variant="h2" sx={{ color: 'inherit', fontSize: { xs: '1.1rem', md: '1.35rem' } }}>WhatsApp siparişleri</Typography></Box>
-          <Button onClick={handleSignOut} size="small" variant="outlined" sx={{ color: 'inherit', borderColor: 'rgba(255,255,255,0.35)' }}>Çıkış</Button>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}><WhatsAppIcon sx={{ color: 'secondary.main' }} /><Typography variant="h2" sx={{ color: 'text.primary', fontSize: { xs: '1.1rem', md: '1.35rem' } }}>WhatsApp siparişleri</Typography></Box>
+          <Button onClick={handleSignOut} size="small" variant="outlined" color="secondary">Çıkış</Button>
         </Container>
       </Box>
       <Container maxWidth="lg" sx={{ py: { xs: 2.5, md: 5 } }}>
@@ -96,12 +96,12 @@ export default function AdminOrdersPage() {
             { label: 'Ürünler', href: '/admin/urunler', icon: <Inventory2OutlinedIcon sx={{ fontSize: 17 }} /> },
             { label: 'İçerik düzenle', href: '/admin/icerik', icon: <Inventory2OutlinedIcon sx={{ fontSize: 17 }} /> },
             { label: 'Siparişler', href: '/admin/siparisler', icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 17 }} />, active: true },
-          ].map((item) => <Button key={item.href} component={Link} to={item.href} startIcon={item.icon} variant={item.active ? 'contained' : 'outlined'} size="small" sx={{ whiteSpace: 'nowrap' }}>{item.label}</Button>)}
+          ].map((item) => <Button key={item.href} component={Link} to={item.href} startIcon={item.icon} variant={item.active ? 'contained' : 'outlined'} color="secondary" size="small" sx={{ whiteSpace: 'nowrap' }}>{item.label}</Button>)}
         </Stack>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 2, mb: 3 }}>
           <Box><Typography variant="h1" sx={{ fontSize: { xs: '2rem', md: '2.7rem' } }}>Siparişler</Typography><Typography color="text.secondary" sx={{ mt: 0.5 }}>WhatsApp’tan gelen talepleri tek yerden yönetin.</Typography></Box>
-          <Chip label={`${pendingCount} yeni`} color="secondary" sx={{ color: 'white', fontWeight: 700 }} />
+          <Chip label={`${pendingCount} yeni`} color="secondary" sx={{ fontWeight: 700 }} />
         </Box>
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -112,7 +112,7 @@ export default function AdminOrdersPage() {
             {orders.map((order) => <Paper key={order.id} sx={{ p: { xs: 2, sm: 3 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, mb: 2 }}>
                 <Box><Typography sx={{ fontWeight: 800 }}>{order.order_number}</Typography><Typography variant="caption" color="text.secondary">{new Date(order.created_at).toLocaleDateString('tr-TR')} · {order.guest_name || 'Üye'}</Typography></Box>
-                <Chip label={order.status} size="small" sx={{ bgcolor: statusBg(order.status), color: 'white', fontWeight: 700 }} />
+                <Chip label={order.status} size="small" color={statusColor(order.status)} sx={{ fontWeight: 700 }} />
               </Box>
               <Divider sx={{ mb: 2 }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -128,7 +128,14 @@ export default function AdminOrdersPage() {
   );
 }
 
-function statusBg(status: string) {
-  const colors: Record<string, string> = { onaylandı: '#397A58', kargoda: '#3A7BD5', 'teslim edildi': '#397A58', iptal: '#B94A48', beklemede: '#B77B52', hazırlanıyor: '#806F64' };
-  return colors[status] || '#806F64';
+function statusColor(status: string): 'success' | 'info' | 'error' | 'warning' | 'secondary' {
+  const colors: Record<string, 'success' | 'info' | 'error' | 'warning' | 'secondary'> = {
+    'onaylandı': 'success',
+    'kargoda': 'info',
+    'teslim edildi': 'success',
+    'iptal': 'error',
+    'beklemede': 'warning',
+    'hazırlanıyor': 'secondary',
+  };
+  return colors[status] ?? 'secondary';
 }

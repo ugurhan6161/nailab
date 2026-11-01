@@ -72,14 +72,14 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#FFFFFF', minHeight: '100vh' }}>
-      <Box sx={{ bgcolor: '#000000', py: 2.5 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
+      <Box sx={{ bgcolor: 'background.paper', py: 2.5 }}>
         <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <DashboardOutlinedIcon sx={{ color: '#A9876D' }} />
-            <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 20, fontWeight: 700, color: '#FFFFFF' }}>Admin Panel</Typography>
+            <DashboardOutlinedIcon sx={{ color: 'secondary.main' }} />
+            <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 20, fontWeight: 700, color: 'text.primary' }}>Admin Panel</Typography>
           </Box>
-          <Button onClick={handleSignOut} size="small" sx={{ color: '#EED2BC', borderColor: 'rgba(201,149,106,0.4)' }} variant="outlined">Çıkış</Button>
+          <Button onClick={handleSignOut} size="small" sx={{ color: 'secondary.light', borderColor: 'divider' }} variant="outlined">Çıkış</Button>
         </Container>
       </Box>
 
@@ -96,10 +96,8 @@ export default function AdminDashboardPage() {
             <Button key={t.href} component={Link} to={t.href}
               variant={t.active ? 'contained' : 'outlined'} size="small"
               startIcon={t.icon}
-              sx={t.active
-                ? { bgcolor: '#000000', color: 'white', borderRadius: 2, textTransform: 'none' }
-                : { borderColor: 'rgba(201,149,106,0.3)', color: '#000000', borderRadius: 2, textTransform: 'none' }
-              }>
+              color="secondary"
+              sx={{ borderRadius: 2, textTransform: 'none' }}>
               {t.label}
             </Button>
           ))}
@@ -112,24 +110,24 @@ export default function AdminDashboardPage() {
             {/* Stats */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
               {[
-                { icon: <Inventory2OutlinedIcon sx={{ fontSize: 28 }} />, label: 'Toplam Ürün', value: stats.products, color: '#A9876D' },
-                { icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 28 }} />, label: 'Toplam Sipariş', value: stats.orders, color: '#3DA56F' },
-                { icon: <TrendingUpIcon sx={{ fontSize: 28 }} />, label: 'Toplam Gelir', value: `${stats.revenue.toLocaleString('tr-TR')} ₺`, color: '#3A7BD5' },
-                { icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 28 }} />, label: 'Bekleyen Sipariş', value: stats.pending, color: '#B8924A' },
+                { icon: <Inventory2OutlinedIcon sx={{ fontSize: 28 }} />, label: 'Toplam Ürün', value: stats.products, color: 'secondary.main' },
+                { icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 28 }} />, label: 'Toplam Sipariş', value: stats.orders, color: 'success.main' },
+                { icon: <TrendingUpIcon sx={{ fontSize: 28 }} />, label: 'Toplam Gelir', value: `${stats.revenue.toLocaleString('tr-TR')} ₺`, color: 'info.main' },
+                { icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 28 }} />, label: 'Bekleyen Sipariş', value: stats.pending, color: 'warning.main' },
               ].map(s => (
                 <Grid size={{ xs: 12, sm: 6, md: 3 }} key={s.label}>
-                  <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid rgba(201,149,106,0.15)' }}>
+                  <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
                     <Box sx={{ color: s.color, mb: 1.5 }}>{s.icon}</Box>
-                    <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 28, fontWeight: 700, color: '#000000' }}>{s.value}</Typography>
-                    <Typography sx={{ fontSize: 13, color: '#5E564D' }}>{s.label}</Typography>
+                    <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 28, fontWeight: 700, color: 'text.primary' }}>{s.value}</Typography>
+                    <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>{s.label}</Typography>
                   </Paper>
                 </Grid>
               ))}
             </Grid>
 
             {/* Recent orders */}
-            <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid rgba(201,149,106,0.15)' }}>
-              <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 20, fontWeight: 700, color: '#000000', mb: 2 }}>
+            <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+              <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 20, fontWeight: 700, color: 'text.primary', mb: 2 }}>
                 Son Siparişler
               </Typography>
               <List>
@@ -137,15 +135,15 @@ export default function AdminDashboardPage() {
                   <Box key={o.id}>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemText
-                        primary={<Typography sx={{ fontWeight: 600, fontSize: 14, color: '#000000' }}>{o.order_number}</Typography>}
+                        primary={<Typography sx={{ fontWeight: 600, fontSize: 14, color: 'text.primary' }}>{o.order_number}</Typography>}
                         secondary={
-                          <Typography sx={{ fontSize: 12, color: '#5E564D' }} component="span">
+                          <Typography sx={{ fontSize: 12, color: 'text.secondary' }} component="span">
                             {new Date(o.created_at).toLocaleDateString('tr-TR')} · {o.guest_name || 'Üye'}
                           </Typography>
                         }
                       />
-                      <Chip label={o.status} size="small" sx={{ mr: 2, bgcolor: statusBg(o.status), color: 'white', fontSize: 11, fontWeight: 600 }} />
-                      <Typography sx={{ fontWeight: 700, fontSize: 14, color: '#000000' }}>{o.total.toLocaleString('tr-TR')} ₺</Typography>
+                      <Chip label={o.status} size="small" color={statusColor(o.status)} sx={{ mr: 2, fontSize: 11, fontWeight: 600 }} />
+                      <Typography sx={{ fontWeight: 700, fontSize: 14, color: 'text.primary' }}>{o.total.toLocaleString('tr-TR')} ₺</Typography>
                     </ListItem>
                     {i < recentOrders.length - 1 && <Divider />}
                   </Box>
@@ -159,10 +157,14 @@ export default function AdminDashboardPage() {
   );
 }
 
-function statusBg(status: string) {
-  const colors: Record<string, string> = {
-    'onaylandı': '#3DA56F', 'kargoda': '#3A7BD5', 'teslim edildi': '#3DA56F',
-    'iptal': '#D64545', 'beklemede': '#B8924A', 'hazırlanıyor': '#A9876D',
+function statusColor(status: string): 'success' | 'info' | 'error' | 'warning' | 'secondary' {
+  const colors: Record<string, 'success' | 'info' | 'error' | 'warning' | 'secondary'> = {
+    'onaylandı': 'success',
+    'kargoda': 'info',
+    'teslim edildi': 'success',
+    'iptal': 'error',
+    'beklemede': 'warning',
+    'hazırlanıyor': 'secondary',
   };
-  return colors[status] || '#5E564D';
+  return colors[status] ?? 'secondary';
 }

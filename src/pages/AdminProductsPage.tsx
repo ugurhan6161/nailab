@@ -25,14 +25,14 @@ export default function AdminProductsPage() {
   const handleSignOut = async () => { await logout(); navigate('/'); };
 
   return (
-    <Box sx={{ bgcolor: '#FFFFFF', minHeight: '100vh' }}>
-      <Box sx={{ bgcolor: '#000000', py: 2.5 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
+      <Box sx={{ bgcolor: 'background.paper', py: 2.5 }}>
         <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Inventory2OutlinedIcon sx={{ color: '#A9876D' }} />
-            <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 20, fontWeight: 700, color: '#FFFFFF' }}>Admin Panel</Typography>
+            <Inventory2OutlinedIcon sx={{ color: 'secondary.main' }} />
+            <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 20, fontWeight: 700, color: 'text.primary' }}>Admin Panel</Typography>
           </Box>
-          <Button onClick={handleSignOut} size="small" variant="outlined" sx={{ color: '#EED2BC', borderColor: 'rgba(201,149,106,0.4)' }}>Çıkış</Button>
+          <Button onClick={handleSignOut} size="small" variant="outlined" color="secondary">Çıkış</Button>
         </Container>
       </Box>
 
@@ -46,18 +46,15 @@ export default function AdminProductsPage() {
           ].map(t => (
             <Button key={t.href} component={Link} to={t.href}
               variant={t.active ? 'contained' : 'outlined'} size="small" startIcon={t.icon}
-              sx={t.active
-                ? { bgcolor: '#000000', color: 'white', borderRadius: 2, textTransform: 'none' }
-                : { borderColor: 'rgba(201,149,106,0.3)', color: '#000000', borderRadius: 2, textTransform: 'none' }
-              }>
+              color="secondary" sx={{ borderRadius: 2, textTransform: 'none' }}>
               {t.label}
             </Button>
           ))}
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 26, fontWeight: 700, color: '#000000' }}>Ürünler</Typography>
-          <Button variant="outlined" startIcon={<RefreshIcon />} onClick={refresh} sx={{ borderColor: '#A9876D', color: '#60432E', borderRadius: 2 }}>
+          <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 26, fontWeight: 700, color: 'text.primary' }}>Ürünler</Typography>
+          <Button variant="outlined" color="secondary" startIcon={<RefreshIcon />} onClick={refresh} sx={{ borderRadius: 2 }}>
             Yenile
           </Button>
         </Box>
@@ -71,12 +68,12 @@ export default function AdminProductsPage() {
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}><CircularProgress sx={{ color: '#A9876D' }} /></Box>
         ) : (
-          <TableContainer component={Paper} sx={{ borderRadius: 3, border: '1px solid rgba(201,149,106,0.15)' }}>
+          <TableContainer component={Paper} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
             <Table>
               <TableHead>
-                <TableRow sx={{ bgcolor: '#F5F0EB' }}>
+                <TableRow sx={{ bgcolor: 'background.paper' }}>
                   {['Ürün', 'Kategori', 'Fiyat', 'Stok', 'Durum'].map(h => (
-                    <TableCell key={h} sx={{ fontWeight: 700, fontSize: 13, color: '#000000' }}>{h}</TableCell>
+                    <TableCell key={h} sx={{ fontWeight: 700, fontSize: 13, color: 'text.primary' }}>{h}</TableCell>
                   ))}
                 </TableRow>
               </TableHead>
@@ -86,13 +83,13 @@ export default function AdminProductsPage() {
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <Box component="img" src={p.image} alt={p.title} sx={{ width: 40, height: 40, borderRadius: 1, objectFit: 'cover' }} />
-                        <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#000000' }}>{p.title}</Typography>
+                        <Typography sx={{ fontSize: 13, fontWeight: 600, color: 'text.primary' }}>{p.title}</Typography>
                       </Box>
                     </TableCell>
-                    <TableCell><Chip label={p.category} size="small" sx={{ fontSize: 11 }} /></TableCell>
+                    <TableCell><Chip label={p.category} size="small" color="secondary" variant="outlined" sx={{ fontSize: 11 }} /></TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>{p.price.toLocaleString('tr-TR')} ₺</TableCell>
                     <TableCell>{p.stock ?? 50}</TableCell>
-                    <TableCell><Chip label={(p.stock ?? 50) > 0 && p.price > 0 ? 'Satışta' : 'Satış dışı'} size="small" sx={{ bgcolor: (p.stock ?? 50) > 0 && p.price > 0 ? '#E8F5E9' : '#F9F1EC', color: (p.stock ?? 50) > 0 && p.price > 0 ? '#3DA56F' : '#5E564D', fontSize: 11 }} /></TableCell>
+                    <TableCell><Chip label={(p.stock ?? 50) > 0 && p.price > 0 ? 'Satışta' : 'Satış dışı'} size="small" color={(p.stock ?? 50) > 0 && p.price > 0 ? 'success' : 'default'} variant="outlined" sx={{ fontSize: 11 }} /></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
