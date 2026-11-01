@@ -15,6 +15,7 @@ import { siteText } from '../context/WebsiteDataContext';
 type ConfirmationState = {
   order?: Order;
   telegramNotified?: boolean;
+  telegramError?: string | null;
 };
 
 const statusLabels: Record<string, string> = {
@@ -119,7 +120,8 @@ export default function OrderCompletePage() {
         {loadError && <Alert severity="warning" sx={{ mb: 2 }}>{loadError}</Alert>}
         {telegramNotified === false && (
           <Alert severity="warning" sx={{ mb: 2 }}>
-            Siparişiniz kaydedildi ancak Telegram bildirimi gönderilemedi. Ekibimiz siparişinizi panelden görebilir.
+            Siparişiniz kaydedildi ancak Telegram bildirimi gönderilemedi.
+            {confirmationState?.telegramError ? ` ${confirmationState.telegramError}` : ' Ekibimiz siparişinizi panelden görebilir.'}
           </Alert>
         )}
         {actionMessage && <Alert severity="success" role="status" sx={{ mb: 2 }}>{actionMessage}</Alert>}

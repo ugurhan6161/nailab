@@ -31,14 +31,18 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function escapeHtml(value: string) {
-  return value.replace(/[&<>"']/g, (character) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-  })[character] ?? character);
+function describeTelegramFailure(status: number, description: string) {
+  const normalized = description.toLowerCase();
+  if (normalized.includes('chat not found')) {
+    return 'Telegram sohbeti bulunamadı. Vercel’de TELEGRAM_CHAT_ID değerini kontrol edin; bota özel mesajdan /start gönderin veya botu gruba ekleyin.';
+  }
+  if (normalized.includes('bot was blocked') || normalized.includes('bot is not a member') || normalized.includes('not enough rights')) {
+    return 'Telegram botunun hedef sohbete mesaj gönderme izni yok. Botu engelden çıkarın veya grup izinlerini kontrol edin.';
+  }
+  if (normalized.includes('message is too long')) {
+    return 'Telegram bildirimi mesaj uzunluğu sınırını aştı.';
+  }
+  return `Telegram API bildirimi reddetti (HTTP ${status}): ${description || 'Açıklama alınamadı.'}`;
 }
 
 function parsePayload(value: unknown): CheckoutPayload | null {
@@ -121,11 +125,13 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     return;
   }
 
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const botToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
   let telegramNotified = false;
+  let telegramError: string | null = null;
 
   if (!botToken || !chatId) {
+    telegramError = 'Vercel’de TELEGRAM_BOT_TOKEN ve TELEGRAM_CHAT_ID ayarlanmalı; değerleri değiştirdikten sonra yeniden deploy edin.';
     console.error('Sipariş Telegram bildirimi gönderilemedi; Telegram ortam değişkenleri tanımlanmamış.', order.order_number);
   } else {
     const orderItems = Array.isArray(order.order_items) ? order.order_items : [];
@@ -136,48 +142,68 @@ export default async function handler(request: ApiRequest, response: ApiResponse
         const quantity = Number(item.quantity);
         const price = Number(item.total_price);
         const name = typeof item.product_name === 'string' ? item.product_name.slice(0, 80) : 'Ürün';
-        return `• ${quantity} × ${escapeHtml(name)} — ${price.toLocaleString('tr-TR')} ₺`;
+        return `• ${quantity} × ${name} — ${price.toLocaleString('tr-TR')} ₺`;
       });
     const addressLine = [
       payload.address,
       payload.district,
       payload.city,
-    ].filter(Boolean).map(escapeHtml).join(', ');
+    ].filter(Boolean).join(', ');
     const text = [
-      '<b>Yeni ön sipariş</b>',
-      `<b>Sipariş kodu:</b> ${escapeHtml(order.order_number)}`,
-      `<b>Müşteri:</b> ${escapeHtml(payload.name)}`,
-      `<b>Telefon:</b> ${escapeHtml(payload.phone)}`,
-      `<b>E-posta:</b> ${escapeHtml(payload.email || 'Belirtilmedi')}`,
-      `<b>Teslimat adresi:</b> ${addressLine}`,
+      'Yeni ön sipariş',
+      `Sipariş kodu: ${order.order_number}`,
+      `Müşteri: ${payload.name}`,
+      `Telefon: ${payload.phone}`,
+      `E-posta: ${payload.email || 'Belirtilmedi'}`,
+      `Teslimat adresi: ${addressLine}`,
       '',
-      '<b>Ürünler:</b>',
+      'Ürünler:',
       ...(itemLines.length > 0 ? itemLines : ['Ürün detayı bulunamadı']),
       ...(orderItems.length > 20 ? [`… ve ${orderItems.length - 20} ürün daha`] : []),
       '',
-      `<b>Toplam:</b> ${Number(order.total ?? 0).toLocaleString('tr-TR')} ₺`,
-      ...(payload.notes ? [`<b>Not:</b> ${escapeHtml(payload.notes.slice(0, 400))}`] : []),
+      `Toplam: ${Number(order.total ?? 0).toLocaleString('tr-TR')} ₺`,
+      ...(payload.notes ? [`Not: ${payload.notes.slice(0, 400)}`] : []),
     ].join('\n');
 
     try {
       const telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
+        body: JSON.stringify({ chat_id: chatId, text }),
+        signal: AbortSignal.timeout(5000),
       });
-      const telegramResult: unknown = await telegramResponse.json();
+      const responseBody = await telegramResponse.text();
+      let telegramResult: unknown = null;
+      try {
+        telegramResult = JSON.parse(responseBody);
+      } catch {
+        telegramResult = null;
+      }
       telegramNotified = telegramResponse.ok && isRecord(telegramResult) && telegramResult.ok === true;
       if (!telegramNotified) {
-        console.error('Telegram sipariş bildirimi gönderilemedi.', order.order_number, telegramResponse.status);
+        const description = isRecord(telegramResult) && typeof telegramResult.description === 'string'
+          ? telegramResult.description
+          : '';
+        telegramError = describeTelegramFailure(telegramResponse.status, description);
+        console.error(
+          'Telegram sipariş bildirimi gönderilemedi.',
+          order.order_number,
+          telegramResponse.status,
+          description || 'Telegram API yanıt açıklaması içermiyor.',
+        );
       }
-    } catch (telegramError) {
+    } catch (notificationError) {
+      const details = notificationError instanceof Error ? notificationError.message : 'Bilinmeyen ağ hatası.';
+      telegramError = details.includes('Timeout')
+        ? 'Telegram bildirimi zaman aşımına uğradı. Sipariş kaydedildi; Telegram bağlantı ve bot erişimini kontrol edin.'
+        : 'Telegram sunucusuna ulaşılamadı. Sipariş kaydedildi; Vercel ağ günlüklerini kontrol edin.';
       console.error(
         'Telegram sipariş bildirimi gönderilemedi.',
         order.order_number,
-        telegramError instanceof Error ? telegramError.message : 'Bilinmeyen ağ hatası.',
+        details,
       );
     }
   }
 
-  response.status(200).json({ order, telegramNotified });
+  response.status(200).json({ order, telegramNotified, telegramError });
 }

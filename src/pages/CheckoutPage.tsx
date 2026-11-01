@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Alert, Box, Button, Container, Divider, Grid, Paper, TextField, Typography, Stack,
+  Alert, Box, Button, CircularProgress, Container, Divider, Grid, Paper, TextField, Typography, Stack,
 } from '@mui/material';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -29,6 +29,7 @@ export default function CheckoutPage() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [orderSubmitted, setOrderSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<CheckoutForm>({
     name: profile?.full_name || '',
@@ -39,8 +40,13 @@ export default function CheckoutPage() {
     notes: '',
   });
 
+  useEffect(() => {
+    if (items.length === 0 && !orderSubmitted) {
+      navigate('/sepet', { replace: true });
+    }
+  }, [items.length, navigate, orderSubmitted]);
+
   if (items.length === 0) {
-    navigate('/sepet');
     return null;
   }
 
@@ -59,14 +65,26 @@ export default function CheckoutPage() {
     }
     setLoading(true);
     try {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw new Error(`Oturum doğrulanamadı: ${sessionError.message}`);
+      let accessToken: string | null = null;
+      try {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          console.warn('Oturum yenilenemedi; sipariş misafir olarak gönderilecek.', sessionError.message);
+        } else {
+          accessToken = sessionData.session?.access_token ?? null;
+        }
+      } catch (sessionError) {
+        console.warn(
+          'Oturum okunamadı; sipariş misafir olarak gönderilecek.',
+          sessionError instanceof Error ? sessionError.message : 'Bilinmeyen oturum hatası.',
+        );
+      }
       const response = await fetch('/api/orders/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(sessionData.session?.access_token
-            ? { Authorization: `Bearer ${sessionData.session.access_token}` }
+          ...(accessToken
+            ? { Authorization: `Bearer ${accessToken}` }
             : {}),
         },
         body: JSON.stringify({
@@ -83,16 +101,26 @@ export default function CheckoutPage() {
           })),
         }),
       });
-      const result = await response.json() as { order?: Order; telegramNotified?: boolean; error?: string };
+      const result = await response.json() as {
+        order?: Order;
+        telegramNotified?: boolean;
+        telegramError?: string | null;
+        error?: string;
+      };
       if (!response.ok) throw new Error(result.error || 'Sipariş oluşturulamadı.');
       if (!result.order || typeof result.order.order_number !== 'string') {
         throw new Error('Sipariş servisi beklenen biçimde yanıt vermedi.');
       }
 
-      clearCart();
+      setOrderSubmitted(true);
       navigate(`/siparis-tamamlandi/${result.order.order_number}`, {
-        state: { order: result.order, telegramNotified: result.telegramNotified === true },
+        state: {
+          order: result.order,
+          telegramNotified: result.telegramNotified === true,
+          telegramError: result.telegramError,
+        },
       });
+      clearCart();
     } catch (checkoutError) {
       setError(checkoutError instanceof Error ? `Sipariş oluşturulamadı: ${checkoutError.message}` : 'Sipariş oluşturulamadı.');
     } finally {
@@ -291,7 +319,10 @@ export default function CheckoutPage() {
                 variant="contained"
                 size="large"
                 disabled={loading || catalogLoading || Boolean(catalogError)}
-                startIcon={<ShoppingBagOutlinedIcon />}
+                aria-busy={loading}
+                startIcon={loading
+                  ? <CircularProgress size={18} thickness={5} sx={{ color: 'inherit' }} />
+                  : <ShoppingBagOutlinedIcon />}
                 onClick={handleCheckout}
                 sx={{
                   bgcolor: '#FFFFFF',
@@ -305,14 +336,14 @@ export default function CheckoutPage() {
                 }}
               >
                 {loading
-                  ? 'Oluşturuluyor…'
+                  ? 'Sipariş gönderiliyor…'
                   : 'Ön sipariş oluştur'}
               </Button>
 
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.8, mt: 2.5 }}>
                 <VerifiedIcon sx={{ fontSize: 15, color: '#D0B198' }} />
                 <Typography sx={{ fontSize: '0.75rem', color: '#A0978E', textAlign: 'center' }}>
-                  {siteText("src/pages/CheckoutPage.tsx#4a481b872bb6", "                  Siparişiniz güvenle kaydedilir ve ekibimize Telegram üzerinden bildirilir. ")}</Typography>
+                  {siteText("src/pages/CheckoutPage.tsx#4a481b872bb6", "Siparişiniz güvenle kaydedilir ve ekibimize Telegram üzerinden bildirilir.")}</Typography>
               </Box>
             </Paper>
           </Grid>
