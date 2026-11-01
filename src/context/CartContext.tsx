@@ -1,6 +1,8 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import type { Product } from '../lib/supabase';
+import { toAppProduct } from '../lib/ecommerceData';
+import { useProducts } from './ProductsContext';
 
 export type CartItem = {
   product: Product;
@@ -26,7 +28,8 @@ const FREE_SHIPPING_THRESHOLD = 1500;
 const SHIPPING_COST = 89;
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(() => {
+  const { products, loading: productsLoading, error: productsError } = useProducts();
+  const [savedItems, setSavedItems] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem('nailab_cart');
       return saved ? JSON.parse(saved) : [];
@@ -35,12 +38,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   });
 
+  const items = useMemo(() => {
+    if (productsLoading || productsError) return savedItems;
+    const currentProducts = new Map(products.map((product) => [product.id, product]));
+    return savedItems.flatMap((item) => {
+      const currentProduct = currentProducts.get(item.product.id);
+      return currentProduct ? [{ ...item, product: toAppProduct(currentProduct) }] : [];
+    });
+  }, [products, productsError, productsLoading, savedItems]);
+
   useEffect(() => {
     localStorage.setItem('nailab_cart', JSON.stringify(items));
   }, [items]);
 
   const addToCart = (product: Product, quantity = 1) => {
-    setItems(prev => {
+    setSavedItems(prev => {
       const existing = prev.find(i => i.product.id === product.id);
       if (existing) {
         return prev.map(i =>
@@ -54,7 +66,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeFromCart = (productId: string) => {
-    setItems(prev => prev.filter(i => i.product.id !== productId));
+    setSavedItems(prev => prev.filter(i => i.product.id !== productId));
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
@@ -62,12 +74,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeFromCart(productId);
       return;
     }
-    setItems(prev =>
+    setSavedItems(prev =>
       prev.map(i => i.product.id === productId ? { ...i, quantity } : i)
     );
   };
 
-  const clearCart = () => setItems([]);
+  const clearCart = () => setSavedItems([]);
 
   const isInCart = (productId: string) => items.some(i => i.product.id === productId);
 

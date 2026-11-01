@@ -6,6 +6,7 @@ import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { FlyAnimationProvider } from './context/FlyAnimationContext';
+import { ProductsProvider } from './context/ProductsContext';
 
 import HomePage from './pages/HomePage';
 import ShopPage from './pages/ShopPage';
@@ -28,55 +29,57 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <FlyAnimationProvider>
-              <BrowserRouter>
-                <Routes>
-                  {/* 1. Splash / Landing Page */}
-                  <Route path="/" element={<HomePage />} />
+      <ProductsProvider>
+        <AuthProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <FlyAnimationProvider>
+                <BrowserRouter>
+                  <Routes>
+                    {/* 1. Splash / Landing Page */}
+                    <Route path="/" element={<HomePage />} />
 
-                  {/* 2. Shop Page */}
-                  <Route path="/magaza" element={<ShopPage />} />
-                  <Route path="/shop" element={<ShopPage />} />
+                    {/* 2. Shop Page */}
+                    <Route path="/magaza" element={<ShopPage />} />
+                    <Route path="/shop" element={<ShopPage />} />
 
-                  {/* 3. Category Page */}
-                  <Route path="/kategori" element={<CategoryPage />} />
-                  <Route path="/kategori/:category" element={<CategoryPage />} />
-                  <Route path="/category/:category" element={<CategoryPage />} />
+                    {/* 3. Category Page */}
+                    <Route path="/kategori" element={<CategoryPage />} />
+                    <Route path="/kategori/:category" element={<CategoryPage />} />
+                    <Route path="/category/:category" element={<CategoryPage />} />
 
-                  {/* 4. Product Details */}
-                  <Route path="/urun/:id" element={<ProductDetailPage />} />
+                    {/* 4. Product Details */}
+                    <Route path="/urun/:id" element={<ProductDetailPage />} />
 
-                  {/* 5. Complete Shopping Cart Flow */}
-                  <Route path="/sepet" element={<CartPage />} />
-                  <Route path="/odeme" element={<CheckoutPage />} />
-                  <Route path="/siparis-tamamlandi/:orderNumber" element={<OrderCompletePage />} />
+                    {/* 5. Complete Shopping Cart Flow */}
+                    <Route path="/sepet" element={<CartPage />} />
+                    <Route path="/odeme" element={<CheckoutPage />} />
+                    <Route path="/siparis-tamamlandi/:orderNumber" element={<OrderCompletePage />} />
 
-                  {/* 6. Customer Account & Auth */}
-                  <Route path="/giris" element={<AuthPage />} />
-                  <Route path="/hesabim" element={<AccountPage />} />
-                  <Route path="/siparislerim" element={<OrdersPage />} />
+                    {/* 6. Customer Account & Auth */}
+                    <Route path="/giris" element={<AuthPage />} />
+                    <Route path="/hesabim" element={<AccountPage />} />
+                    <Route path="/siparislerim" element={<OrdersPage />} />
 
-                  {/* 7. Trainer Portal */}
-                  <Route path="/egitmen-giris" element={<TrainerPortalLoginPage />} />
-                  <Route path="/egitmen-portal" element={<TrainerPortalPage />} />
+                    {/* 7. Trainer Portal */}
+                    <Route path="/egitmen-giris" element={<TrainerPortalLoginPage />} />
+                    <Route path="/egitmen-portal" element={<TrainerPortalPage />} />
 
-                  {/* 8. Admin Management */}
-                  <Route path="/admin/giris" element={<AdminLoginPage />} />
-                  <Route path="/admin" element={<AdminDashboardPage />} />
-                  <Route path="/admin/urunler" element={<AdminProductsPage />} />
-                  <Route path="/admin/siparisler" element={<AdminOrdersPage />} />
+                    {/* 8. Admin Management */}
+                    <Route path="/admin/giris" element={<AdminLoginPage />} />
+                    <Route path="/admin" element={<AdminDashboardPage />} />
+                    <Route path="/admin/urunler" element={<AdminProductsPage />} />
+                    <Route path="/admin/siparisler" element={<AdminOrdersPage />} />
 
-                  {/* Fallback to Home */}
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </BrowserRouter>
-            </FlyAnimationProvider>
-          </WishlistProvider>
-        </CartProvider>
-      </AuthProvider>
+                    {/* Fallback to Home */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </BrowserRouter>
+              </FlyAnimationProvider>
+            </WishlistProvider>
+          </CartProvider>
+        </AuthProvider>
+      </ProductsProvider>
     </ThemeProvider>
   );
 }

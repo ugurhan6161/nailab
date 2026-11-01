@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { STORE_PRODUCTS, type StoreProduct } from '../lib/ecommerceData';
+import type { StoreProduct } from '../lib/ecommerceData';
+import { useProducts } from './ProductsContext';
 
 interface WishlistContextType {
   wishlistIds: string[];
@@ -12,14 +13,14 @@ interface WishlistContextType {
 const WishlistContext = createContext<WishlistContextType | null>(null);
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
+  const { products } = useProducts();
   const [wishlistIds, setWishlistIds] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('ecom_wishlist');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          // Only keep valid existing store product IDs
-          return parsed.filter((id) => STORE_PRODUCTS.some((p) => p.id === id));
+          return parsed.filter((id): id is string => typeof id === 'string');
         }
       }
       return [];
@@ -44,7 +45,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
   const isWishlisted = (productId: string) => wishlistIds.includes(productId);
 
-  const wishlistProducts = STORE_PRODUCTS.filter((p) => wishlistIds.includes(p.id));
+  const wishlistProducts = products.filter((p) => wishlistIds.includes(p.id));
 
   return (
     <WishlistContext.Provider

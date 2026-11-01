@@ -98,7 +98,8 @@ export interface StoreProduct {
   title: string;
   category: string;
   price: number;
-  priceFormatted: string;
+  priceFormatted?: string;
+  stock?: number;
   image: string;
   description: string;
   rating: number;
@@ -232,7 +233,7 @@ export function toAppProduct(p: StoreProduct): Product {
     image_url: p.image,
     category: p.category,
     badge: p.badge || null,
-    stock: 50,
+    stock: p.stock ?? 50,
     rating: p.rating,
     review_count: p.reviews,
     is_active: true,
@@ -240,12 +241,11 @@ export function toAppProduct(p: StoreProduct): Product {
   };
 }
 
-export function getCategoryProducts(categoryTag?: string): StoreProduct[] {
+export function getCategoryProducts(products: StoreProduct[], categoryTag?: string): StoreProduct[] {
   if (!categoryTag || categoryTag.toLowerCase() === 'all') {
-    return STORE_PRODUCTS;
+    return products;
   }
-  const filtered = STORE_PRODUCTS.filter(
+  return products.filter(
     (p) => p.category.toLowerCase() === categoryTag.toLowerCase()
   );
-  return filtered.length > 0 ? filtered : STORE_PRODUCTS;
 }

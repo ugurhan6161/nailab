@@ -19,8 +19,9 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useFlyAnimation } from '../context/FlyAnimationContext';
+import { useProducts } from '../context/ProductsContext';
 import {
-  CATEGORIES, STORE_PRODUCTS, getCategoryProducts,
+  CATEGORIES, getCategoryProducts,
   toAppProduct, type StoreProduct,
 } from '../lib/ecommerceData';
 
@@ -29,6 +30,7 @@ export default function CategoryPage() {
   const navigate = useNavigate();
   const { itemCount, addToCart, isInCart } = useCart();
   const { wishlistIds, toggleWishlist, wishlistProducts } = useWishlist();
+  const { products: storeProducts, loading: catalogLoading, error: catalogError, refresh } = useProducts();
   const {
     registerWishlistTarget,
     registerCartTarget,
@@ -38,7 +40,7 @@ export default function CategoryPage() {
     isCartPopping,
   } = useFlyAnimation();
 
-  const [loading, setLoading] = useState(true);
+  const [animationLoading, setAnimationLoading] = useState(true);
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,16 +53,16 @@ export default function CategoryPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setLoading(false);
+      setAnimationLoading(false);
     }, 350);
     return () => clearTimeout(timer);
   }, []);
 
   const handleCategorySwitch = (tag: string) => {
-    setLoading(true);
+    setAnimationLoading(true);
     navigate(`/kategori/${tag}`);
     setTimeout(() => {
-      setLoading(false);
+      setAnimationLoading(false);
     }, 350);
   };
 
@@ -76,7 +78,8 @@ export default function CategoryPage() {
 
   const heroImage = matchedCategory ? matchedCategory.image : '/assets/naillabs/screen-1.png';
 
-  const products = getCategoryProducts(category);
+  const loading = animationLoading || catalogLoading;
+  const products = getCategoryProducts(storeProducts, category);
 
   const handleHeartClick = (e: React.MouseEvent<HTMLButtonElement>, prodId: string) => {
     e.stopPropagation();
@@ -110,7 +113,7 @@ export default function CategoryPage() {
     setToastMessage(`"${sp.title}" sepete eklendi!`);
   };
 
-  const filteredSearchProducts = STORE_PRODUCTS.filter(
+  const filteredSearchProducts = storeProducts.filter(
     (p) =>
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.category.toLowerCase().includes(searchQuery.toLowerCase())
@@ -458,6 +461,15 @@ export default function CategoryPage() {
           </Box>
 
           {/* SKELETON OR PRODUCT CARDS */}
+          {catalogError && (
+            <Alert
+              severity="error"
+              action={<Button color="inherit" size="small" onClick={refresh}>Tekrar dene</Button>}
+              sx={{ mb: 2 }}
+            >
+              {catalogError}
+            </Alert>
+          )}
           {loading ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {[1, 2, 3].map((i) => (
@@ -569,7 +581,7 @@ export default function CategoryPage() {
                             mt: 0.3,
                           }}
                         >
-                          {p.priceFormatted}
+                          {p.priceFormatted || `${p.price.toLocaleString('tr-TR')} ₺`}
                         </Typography>
                       </Box>
 
@@ -722,7 +734,7 @@ export default function CategoryPage() {
                       {p.title}
                     </Typography>
                     <Typography sx={{ fontWeight: 700, color: '#D0B198', mt: 0.3, fontSize: 13 }}>
-                      {p.priceFormatted}
+                      {p.priceFormatted || `${p.price.toLocaleString('tr-TR')} ₺`}
                     </Typography>
 
                     {/* Show "Sepete Git" button if already in cart */}
@@ -859,7 +871,7 @@ export default function CategoryPage() {
                 <Box sx={{ flex: 1 }}>
                   <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#FFFFFF' }}>{p.title}</Typography>
                   <Typography sx={{ fontSize: 12, color: '#D0B198' }}>
-                    {p.priceFormatted}
+                    {p.priceFormatted || `${p.price.toLocaleString('tr-TR')} ₺`}
                   </Typography>
                 </Box>
               </Box>

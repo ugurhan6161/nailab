@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Alert, Box, Button, Chip, Container, Grid,
@@ -10,14 +10,14 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import { supabase } from '../lib/supabase';
 import type { Product } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
+import { useProducts } from '../context/ProductsContext';
 import NailFormIllustration from '../components/NailFormIllustration';
 import {
-  demoProduct, PRODUCT_NAME, PRODUCT_DESCRIPTION, KIT_CONTENT, FAQ, NAIL_FORMS,
+  KIT_CONTENT, FAQ, NAIL_FORMS,
 } from '../lib/productContent';
-import { STORE_PRODUCTS, toAppProduct } from '../lib/ecommerceData';
+import { toAppProduct } from '../lib/ecommerceData';
 
 function ProductVisual({ imageUrl, name }: { imageUrl: string; name: string }) {
   return (
@@ -77,40 +77,13 @@ export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const storeMatch = STORE_PRODUCTS.find((p) => p.id === id);
-  const initialProduct = storeMatch
-    ? toAppProduct(storeMatch)
-    : id === demoProduct.id
-    ? demoProduct
-    : null;
-
-  const [product, setProduct] = useState<Product | null>(() => initialProduct);
-  const [loading, setLoading] = useState(() => !initialProduct);
+  const { products, loading: catalogLoading, error: catalogError } = useProducts();
+  const configuredProduct = products.find((item) => item.id === id);
+  const product: Product | null = configuredProduct ? toAppProduct(configuredProduct) : null;
+  const loading = catalogLoading;
   const [quantity, setQuantity] = useState(1);
   const [tab, setTab] = useState(0);
   const [toast, setToast] = useState(false);
-
-  useEffect(() => {
-    if (!id || initialProduct) return;
-    let ignore = false;
-    supabase
-      .from('products')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (ignore) return;
-        setProduct(
-          data
-            ? { ...data, name: data.name || PRODUCT_NAME, description: PRODUCT_DESCRIPTION }
-            : null
-        );
-        setLoading(false);
-      });
-    return () => {
-      ignore = true;
-    };
-  }, [id, initialProduct]);
 
   if (loading) {
     return (
@@ -138,7 +111,7 @@ export default function ProductDetailPage() {
     return (
       <Container sx={{ py: 12, bgcolor: '#090807', color: '#FFFFFF', textAlign: 'center' }}>
         <Typography variant="h2" sx={{ fontSize: '1.5rem', mb: 2 }}>
-          Ürün bulunamadı.
+          {catalogError || 'Ürün bulunamadı.'}
         </Typography>
         <Button
           onClick={() => navigate(-1)}

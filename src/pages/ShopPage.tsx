@@ -18,8 +18,9 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useFlyAnimation } from '../context/FlyAnimationContext';
+import { useProducts } from '../context/ProductsContext';
 import {
-  CATEGORIES, BEST_SELLING_CATEGORIES, STORE_PRODUCTS,
+  CATEGORIES, BEST_SELLING_CATEGORIES,
   toAppProduct, type StoreProduct,
 } from '../lib/ecommerceData';
 
@@ -27,6 +28,7 @@ export default function ShopPage() {
   const navigate = useNavigate();
   const { itemCount, addToCart, isInCart } = useCart();
   const { wishlistIds, toggleWishlist, wishlistProducts } = useWishlist();
+  const { products: storeProducts, loading: catalogLoading, error: catalogError, refresh } = useProducts();
   const {
     registerWishlistTarget,
     registerCartTarget,
@@ -36,7 +38,7 @@ export default function ShopPage() {
     isCartPopping,
   } = useFlyAnimation();
 
-  const [loading, setLoading] = useState(true);
+  const [animationLoading, setAnimationLoading] = useState(true);
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,7 +54,7 @@ export default function ShopPage() {
   // Skeleton loading effect on mount
   useEffect(() => {
     const timer = setTimeout(() => {
-      setLoading(false);
+      setAnimationLoading(false);
     }, 450);
     return () => clearTimeout(timer);
   }, []);
@@ -93,7 +95,8 @@ export default function ShopPage() {
     productSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const filteredSearchProducts = STORE_PRODUCTS.filter(
+  const loading = animationLoading || catalogLoading;
+  const filteredSearchProducts = storeProducts.filter(
     (p) =>
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -646,6 +649,15 @@ export default function ShopPage() {
             </Box>
 
             {/* SKELETON OR PRODUCT CARDS */}
+            {catalogError && (
+              <Alert
+                severity="error"
+                action={<Button color="inherit" size="small" onClick={refresh}>Tekrar dene</Button>}
+                sx={{ mb: 2 }}
+              >
+                {catalogError}
+              </Alert>
+            )}
             {loading ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {[1, 2, 3].map((i) => (
@@ -660,7 +672,7 @@ export default function ShopPage() {
               </Box>
             ) : (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {STORE_PRODUCTS.map((prod) => {
+                {storeProducts.map((prod) => {
                   const wishlisted = wishlistIds.includes(prod.id);
                   const isHeartAnimating = animatingHeartId === prod.id;
                   const isCartAnimating = animatingCartId === prod.id;
@@ -756,7 +768,7 @@ export default function ShopPage() {
                               mt: 0.3,
                             }}
                           >
-                            {prod.priceFormatted}
+                            {prod.priceFormatted || `${prod.price.toLocaleString('tr-TR')} ₺`}
                           </Typography>
                         </Box>
 
@@ -912,7 +924,7 @@ export default function ShopPage() {
                       {p.title}
                     </Typography>
                     <Typography sx={{ fontWeight: 700, color: '#D0B198', mt: 0.3, fontSize: 13 }}>
-                      {p.priceFormatted}
+                      {p.priceFormatted || `${p.price.toLocaleString('tr-TR')} ₺`}
                     </Typography>
 
                     {/* Show "Sepete Git" button if already in cart */}
@@ -1049,7 +1061,7 @@ export default function ShopPage() {
                 <Box sx={{ flex: 1 }}>
                   <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#FFFFFF' }}>{p.title}</Typography>
                   <Typography sx={{ fontSize: 12, color: '#D0B198' }}>
-                    {p.priceFormatted}
+                    {p.priceFormatted || `${p.price.toLocaleString('tr-TR')} ₺`}
                   </Typography>
                 </Box>
               </Box>

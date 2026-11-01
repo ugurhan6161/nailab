@@ -9,6 +9,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useProducts } from '../context/ProductsContext';
 import { supabase } from '../lib/supabase';
 
 const WHATSAPP_NUMBER = '908500000000';
@@ -24,6 +25,7 @@ type CheckoutForm = {
 
 export default function CheckoutPage() {
   const { items, subtotal, shippingCost, total, clearCart } = useCart();
+  const { error: catalogError, loading: catalogLoading, refresh } = useProducts();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -47,6 +49,10 @@ export default function CheckoutPage() {
 
   const handleCheckout = async () => {
     setError(null);
+    if (catalogLoading || catalogError) {
+      setError('Güncel ürün fiyatları doğrulanmadan sipariş oluşturulamaz.');
+      return;
+    }
     if (!form.name.trim() || !form.phone.trim() || !form.address.trim() || !form.city.trim()) {
       setError('Lütfen ad, telefon, adres ve şehir alanlarını doldurun.');
       return;
@@ -145,6 +151,15 @@ export default function CheckoutPage() {
         {error && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: 3, bgcolor: 'rgba(211,47,47,0.2)', color: '#FF8A80' }}>
             {error}
+          </Alert>
+        )}
+        {catalogError && (
+          <Alert
+            severity="error"
+            action={<Button color="inherit" size="small" onClick={refresh}>Yeniden dene</Button>}
+            sx={{ mb: 3, borderRadius: 3 }}
+          >
+            Güncel ürün fiyatları alınamadı; sipariş oluşturma geçici olarak devre dışı. {catalogError}
           </Alert>
         )}
 
@@ -299,7 +314,7 @@ export default function CheckoutPage() {
                 fullWidth
                 variant="contained"
                 size="large"
-                disabled={loading}
+                disabled={loading || catalogLoading || Boolean(catalogError)}
                 startIcon={<WhatsAppIcon />}
                 onClick={handleCheckout}
                 sx={{

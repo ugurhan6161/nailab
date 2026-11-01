@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Box, Button, Container, Divider, Grid, IconButton, Paper, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Container, Divider, Grid, IconButton, Paper, Stack, Typography } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -8,11 +8,13 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import { useCart } from '../context/CartContext';
+import { useProducts } from '../context/ProductsContext';
 
 const FREE_SHIPPING_THRESHOLD = 1500;
 
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity, subtotal, shippingCost, total, itemCount } = useCart();
+  const { error: catalogError, loading: catalogLoading, refresh } = useProducts();
   const navigate = useNavigate();
 
   if (!items.length) {
@@ -129,6 +131,16 @@ export default function CartPage() {
             ({itemCount} ürün)
           </Box>
         </Typography>
+
+        {catalogError && (
+          <Alert
+            severity="error"
+            action={<Button color="inherit" size="small" onClick={refresh}>Yeniden dene</Button>}
+            sx={{ mb: 3 }}
+          >
+            Güncel ürün fiyatları alınamadı. Fiyatlar doğrulanana kadar siparişe devam edemezsiniz. {catalogError}
+          </Alert>
+        )}
 
         {/* Shipping badge */}
         <Box
@@ -335,6 +347,7 @@ export default function CartPage() {
                 size="large"
                 endIcon={<ArrowForwardIcon />}
                 onClick={() => navigate('/odeme')}
+                disabled={catalogLoading || Boolean(catalogError)}
                 sx={{
                   bgcolor: '#FFFFFF',
                   color: '#000000',
