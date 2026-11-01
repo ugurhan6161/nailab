@@ -8,7 +8,7 @@ Mağaza ürünleri ve fiyatları, Global Config deposundaki `products` anahtarı
 
 ### Vercel kurulumu
 
-1. Vercel projesinde `nailab-global-config` deposunu projeye bağlayın. Proje ortam değişkenlerinde `GLOBAL_CONFIG` bağlantı değişkeninin oluştuğunu doğrulayın. Değişkeni `VITE_` önekiyle eklemeyin.
+1. Vercel projesinde `nailab-global-config` deposunu projeye bağlayın. Proje ortam değişkenlerinde `GLOBAL_CONFIG` veya `EDGE_CONFIG` bağlantı değişkeninin oluştuğunu doğrulayın. Değişkeni `VITE_` önekiyle eklemeyin.
 2. Global Config düzenleyicisindeki JSON nesnesinin tamamını [`config/products.json`](./config/products.json) ile değiştirin. En üst düzey değer `{ "products": [...] }` biçiminde bir nesne olmalıdır; tek başına ürün dizisi (`[...]`) kabul edilmez. Başlangıç kataloğu mevcut 8 mağaza ürününü içerir.
 3. Kaydedin ve uygulamanın bir deployment'ını yayınlayın. Sonraki fiyat/ürün güncellemeleri için Global Config'teki `products` dizisini düzenleyip kaydetmeniz yeterlidir; yeni deployment gerekmez. Mağazayı yenileyerek güncel kataloğu alın.
 
@@ -16,7 +16,7 @@ Her ürün için `id`, `title`, `category`, `price`, `image` ve `description` al
 
 ### Yerel geliştirme
 
-Vercel CLI ile projeyi bağladıktan sonra `vercel env pull .env.local` komutuyla `GLOBAL_CONFIG` değişkenini alın ve `npm run dev` çalıştırın. `.env.local` dosyasını repoya eklemeyin. Bu değişken yoksa katalog sahte/statik fiyatlarla gösterilmez; API açık bir yapılandırma hatası verir.
+Vercel CLI ile projeyi bağladıktan sonra `vercel env pull .env.local` komutuyla `GLOBAL_CONFIG` veya `EDGE_CONFIG` değişkenini alın ve `npm run dev` çalıştırın. `.env.local` dosyasını repoya eklemeyin. Bu değişken yoksa katalog sahte/statik fiyatlarla gösterilmez; API açık bir yapılandırma hatası verir.
 
 Currently, two official plugins are available:
 

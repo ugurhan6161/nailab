@@ -46,8 +46,8 @@ function optionalNumber(
 }
 
 export async function getConfiguredProducts(): Promise<StoreProduct[]> {
-  if (!process.env.GLOBAL_CONFIG) {
-    throw new Error('GLOBAL_CONFIG ortam değişkeni tanımlanmamış.');
+  if (!process.env.GLOBAL_CONFIG && !process.env.EDGE_CONFIG) {
+    throw new Error('GLOBAL_CONFIG veya EDGE_CONFIG ortam değişkeni tanımlanmamış.');
   }
 
   const value: unknown = await get('products');
