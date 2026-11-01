@@ -5,6 +5,7 @@ import {
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useState } from 'react';
+import type { FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
 import { siteText } from '../context/WebsiteDataContext';
@@ -12,20 +13,27 @@ import { siteText } from '../context/WebsiteDataContext';
 
 
 export default function TrainerPortalLoginPage() {
-  const { signIn } = useAuth();
+  const { signInTrainer } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ email: '', password: '' });
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
     setError(null);
     if (!form.email || !form.password) { setError('Lütfen tüm alanları doldurun.'); return; }
     setLoading(true);
-    const result = await signIn(form.email, form.password);
-    setLoading(false);
-    if (result.error) { setError(result.error); return; }
-    navigate('/egitmen-portal');
+    try {
+      const result = await signInTrainer(form.email, form.password);
+      if (result.error) { setError(result.error); return; }
+      navigate('/egitmen-portal');
+    } catch (loginError) {
+      console.error('Eğitmen girişi tamamlanamadı:', loginError);
+      setError('Giriş tamamlanamadı. Bağlantınızı kontrol edip yeniden deneyin.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -85,12 +93,14 @@ export default function TrainerPortalLoginPage() {
             </Alert>
           )}
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <TextField
               fullWidth
               label={siteText("src/pages/TrainerPortalLoginPage.tsx#bd0db70c91ba", "E-Posta")}
               size="medium"
               type="email"
+              name="email"
+              autoComplete="email"
               required
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -100,35 +110,36 @@ export default function TrainerPortalLoginPage() {
               label={siteText("src/pages/TrainerPortalLoginPage.tsx#e1ac97fff826", "Şifre")}
               size="medium"
               type="password"
+              name="password"
+              autoComplete="current-password"
               required
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             />
-          </Box>
 
-          <Button
-            fullWidth
-            variant="contained"
-            size="large"
-            disabled={loading}
-            onClick={handleSubmit}
-            sx={{
-              mt: 3.5,
-              bgcolor: '#D0B198',
-              color: '#0E0C0A',
-              py: 1.5,
-              fontWeight: 700,
-              fontSize: 15,
-              borderRadius: 999,
-              '&:hover': { bgcolor: '#E2C7B0' },
-              '&.Mui-disabled': { bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' },
-            }}
-          >
-            {loading
-              ? <CircularProgress size={22} sx={{ color: '#0E0C0A' }} />
-              : siteText('src/pages/TrainerPortalLoginPage.tsx#submit', 'Giriş Yap')}
-          </Button>
+            <Button
+              fullWidth
+              type="submit"
+              variant="contained"
+              size="large"
+              disabled={loading}
+              sx={{
+                mt: 1,
+                bgcolor: '#D0B198',
+                color: '#0E0C0A',
+                py: 1.5,
+                fontWeight: 700,
+                fontSize: 15,
+                borderRadius: 999,
+                '&:hover': { bgcolor: '#E2C7B0' },
+                '&.Mui-disabled': { bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' },
+              }}
+            >
+              {loading
+                ? <CircularProgress size={22} sx={{ color: '#0E0C0A' }} />
+                : siteText('src/pages/TrainerPortalLoginPage.tsx#submit', 'Giriş Yap')}
+            </Button>
+          </Box>
         </Box>
 
         <Typography sx={{ textAlign: 'center', mt: 3, fontSize: 13, color: '#888078' }}>

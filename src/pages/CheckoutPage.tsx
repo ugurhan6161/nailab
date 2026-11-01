@@ -24,6 +24,20 @@ type CheckoutForm = {
 };
 
 export default function CheckoutPage() {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return (
+      <Box sx={{ minHeight: '85vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <CircularProgress color="secondary" />
+      </Box>
+    );
+  }
+
+  return <CheckoutPageContent />;
+}
+
+function CheckoutPageContent() {
   const { items, subtotal, shippingCost, total, clearCart } = useCart();
   const { error: catalogError, loading: catalogLoading, refresh } = useProducts();
   const { user, profile } = useAuth();
@@ -34,9 +48,9 @@ export default function CheckoutPage() {
   const [form, setForm] = useState<CheckoutForm>({
     name: profile?.full_name || '',
     phone: profile?.phone || '',
-    address: '',
-    city: '',
-    district: '',
+    address: profile?.address?.address || '',
+    city: profile?.address?.city || '',
+    district: profile?.address?.district || '',
     notes: '',
   });
 

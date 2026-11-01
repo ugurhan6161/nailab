@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Box, Typography, Container, Paper, Button, Divider, CircularProgress, Chip
+  Alert, Box, Typography, Container, Paper, Button, Divider, CircularProgress, Chip
 } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { useAuth } from '../context/AuthContext';
@@ -12,20 +12,45 @@ import { siteText } from '../context/WebsiteDataContext';
 
 
 export default function OrdersPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) { navigate('/giris'); return; }
-    supabase.from('orders').select('*, order_items(*)').eq('user_id', user.id).order('created_at', { ascending: false }).then(({ data }) => {
-      setOrders(data || []);
-      setLoading(false);
-    });
-  }, [user, navigate]);
 
-  if (!user) return null;
+    let active = true;
+    void (async () => {
+      try {
+        const { data, error: loadError } = await supabase
+          .from('orders')
+          .select('*, order_items(*)')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+        if (!active) return;
+        if (loadError) {
+          setError('Siparişler yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.');
+          console.error('Müşteri siparişleri yüklenemedi:', loadError);
+          return;
+        }
+        setOrders(data || []);
+        setError(null);
+      } catch (loadError) {
+        if (!active) return;
+        console.error('Müşteri siparişleri yüklenemedi:', loadError);
+        setError('Siparişler yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+
+    return () => { active = false; };
+  }, [authLoading, user, navigate]);
+
+  if (authLoading || !user) return null;
 
   return (
     <Box sx={{ bgcolor: '#0E0C0A', minHeight: '85vh', py: { xs: 3, md: 5 } }}>
@@ -47,6 +72,7 @@ export default function OrdersPage() {
         <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: { xs: 26, md: 36 }, fontWeight: 700, color: '#FFFFFF', mb: 4 }}>
           {siteText("src/pages/OrdersPage.tsx#0915a43dd2d9", "Siparişlerim ")}</Typography>
 
+        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}><CircularProgress sx={{ color: '#D0B198' }} /></Box>
         ) : orders.length === 0 ? (

@@ -66,7 +66,7 @@ export default function AuthPage() {
       setSuccessMsg('Hesabınız başarıyla oluşturuldu! Yönlendiriliyorsunuz…');
       setTimeout(() => navigate('/magaza'), 1200);
     } else {
-      navigate('/magaza');
+      navigate('/hesabim');
     }
   };
 

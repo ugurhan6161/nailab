@@ -4,6 +4,7 @@ import { Box, Typography, Button, Container } from '@mui/material';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { siteText } from '../context/WebsiteDataContext';
+import { useAuth } from '../context/AuthContext';
 
 
 
@@ -27,6 +28,7 @@ const HERO_BACKGROUNDS = [
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [animating, setAnimating] = useState(false);
   const [bgIndex, setBgIndex] = useState(0);
 
@@ -306,7 +308,7 @@ export default function HomePage() {
             <Button
               fullWidth
               component={Link}
-              to="/giris"
+              to={user ? '/hesabim' : '/giris'}
               sx={{
                 height: 52,
                 borderRadius: 50,
@@ -329,7 +331,10 @@ export default function HomePage() {
                 },
               }}
             >
-              {siteText("src/pages/HomePage.tsx#044855024139", "Giriş Yap / Hesap Oluştur ")}</Button>
+              {user
+                ? siteText('src/pages/HomePage.tsx#account', 'Hesabım')
+                : siteText("src/pages/HomePage.tsx#044855024139", "Giriş Yap / Hesap Oluştur ")}
+            </Button>
           </Box>
         </Container>
       </Box>

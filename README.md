@@ -29,7 +29,7 @@ Customers can track an order without signing in at the bottom of `/giris` or at 
 
 An `auth/v1/token?grant_type=refresh_token` 400 means the browser's saved Supabase session could not be refreshed (commonly an expired or revoked refresh token). Sign out and sign in again to replace that session. Guest checkout does not require the session and can still submit the order.
 
-The customer sign-up trigger creates a `customer` profile automatically. To grant trainer access, change that user's profile role to `trainer` using the Supabase SQL Editor.
+The customer sign-up trigger creates a `customer` profile automatically. Customers can update their name, phone number, and saved address in `/hesabim`; a successful sign-in opens this account page. To grant trainer access, change that user's profile role to `trainer` using the Supabase SQL Editor. Trainers sign in at `/egitmen-giris` and see published courses from Supabase; only administrators can manage course records in `/admin/icerik`.
 
 ## Local development
 

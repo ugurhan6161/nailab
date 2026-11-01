@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Box, Typography, Container, Grid, Paper, Button, Divider, CircularProgress, TextField
+  Alert, Box, Typography, Container, Grid, Paper, Button, Divider, CircularProgress, TextField
 } from '@mui/material';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
@@ -16,34 +16,95 @@ import { siteText } from '../context/WebsiteDataContext';
 
 
 export default function AccountPage() {
-  const { user, profile, signOut, refreshProfile } = useAuth();
+  const { user, profile, loading: authLoading, signOut, saveProfile } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
-  const [editForm, setEditForm] = useState({ full_name: profile?.full_name || '', phone: profile?.phone || '' });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileNotice, setProfileNotice] = useState<string | null>(null);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    full_name: '',
+    phone: '',
+    address: '',
+    district: '',
+    city: '',
+  });
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) { navigate('/giris'); return; }
-    supabase.from('orders').select('*, order_items(*)').eq('user_id', user.id).order('created_at', { ascending: false }).then(({ data }) => {
-      setOrders(data || []);
-      setLoading(false);
-    });
-  }, [user, navigate]);
+
+    let active = true;
+    void (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*, order_items(*)')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+        if (!active) return;
+        if (error) {
+          setOrdersError('Siparişler yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.');
+          console.error('Müşteri siparişleri yüklenemedi:', error);
+          return;
+        }
+        setOrders(data || []);
+        setOrdersError(null);
+      } catch (error) {
+        if (!active) return;
+        console.error('Müşteri siparişleri yüklenemedi:', error);
+        setOrdersError('Siparişler yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+
+    return () => { active = false; };
+  }, [authLoading, user, navigate]);
 
   const handleStartEdit = () => {
-    setEditForm({ full_name: profile?.full_name || '', phone: profile?.phone || '' });
+    const address = profile?.address ?? {};
+    setEditForm({
+      full_name: profile?.full_name || '',
+      phone: profile?.phone || '',
+      address: address.address || '',
+      district: address.district || '',
+      city: address.city || '',
+    });
+    setProfileError(null);
+    setProfileNotice(null);
     setEditMode(true);
   };
 
-  if (!user) return null;
+  if (authLoading || !user) return null;
 
   const handleSignOut = async () => { await signOut(); navigate('/'); };
 
-  const saveProfile = async () => {
-    await supabase.from('profiles').update({ full_name: editForm.full_name, phone: editForm.phone }).eq('id', user.id);
-    await refreshProfile();
-    setEditMode(false);
+  const handleSaveProfile = async () => {
+    setSavingProfile(true);
+    setProfileError(null);
+    setProfileNotice(null);
+    try {
+      await saveProfile({
+        full_name: editForm.full_name.trim(),
+        phone: editForm.phone.trim(),
+        address: {
+          address: editForm.address.trim(),
+          district: editForm.district.trim(),
+          city: editForm.city.trim(),
+        },
+      });
+      setProfileNotice('Profil bilgileri kaydedildi.');
+      setEditMode(false);
+    } catch (error) {
+      console.error('Müşteri profili kaydedilemedi:', error);
+      setProfileError('Profil bilgileri kaydedilemedi. Bağlantınızı kontrol edip yeniden deneyin.');
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   return (
@@ -88,7 +149,7 @@ export default function AccountPage() {
               {[
                 { icon: <PersonOutlineIcon sx={{ fontSize: 18 }} />, label: siteText('src/pages/AccountPage.tsx#nav.profile', 'Profil Bilgileri'), active: true },
                 { icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 18 }} />, label: siteText('src/pages/AccountPage.tsx#nav.orders', 'Siparişlerim'), href: '/siparislerim' },
-                { icon: <LocationOnOutlinedIcon sx={{ fontSize: 18 }} />, label: siteText('src/pages/AccountPage.tsx#nav.addresses', 'Adreslerim') },
+                { icon: <LocationOnOutlinedIcon sx={{ fontSize: 18 }} />, label: siteText('src/pages/AccountPage.tsx#nav.addresses', 'Adreslerim'), href: '/hesabim#adreslerim' },
               ].map((item, i) => (
                 <Button key={i} fullWidth component={item.href ? Link : 'button'} to={item.href}
                   sx={{
@@ -125,6 +186,8 @@ export default function AccountPage() {
                     {siteText("src/pages/AccountPage.tsx#0016e5c7992e", "Düzenle ")}</Button>
                 )}
               </Box>
+              {profileError && <Alert severity="error" sx={{ mb: 2 }}>{profileError}</Alert>}
+              {profileNotice && <Alert severity="success" sx={{ mb: 2 }}>{profileNotice}</Alert>}
               {editMode ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, maxWidth: 440 }}>
                   <TextField
@@ -159,10 +222,37 @@ export default function AccountPage() {
                       }
                     }}
                   />
+                  <TextField
+                    id="adreslerim"
+                    label={siteText('src/pages/AccountPage.tsx#address', 'Adres')}
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    value={editForm.address}
+                    onChange={e => setEditForm({ ...editForm, address: e.target.value })}
+                  />
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <TextField
+                        label={siteText('src/pages/AccountPage.tsx#district', 'İlçe')}
+                        fullWidth
+                        value={editForm.district}
+                        onChange={e => setEditForm({ ...editForm, district: e.target.value })}
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <TextField
+                        label={siteText('src/pages/AccountPage.tsx#city', 'Şehir')}
+                        fullWidth
+                        value={editForm.city}
+                        onChange={e => setEditForm({ ...editForm, city: e.target.value })}
+                      />
+                    </Grid>
+                  </Grid>
                   <Box sx={{ display: 'flex', gap: 1.5, mt: 1 }}>
-                    <Button variant="contained" size="small" onClick={saveProfile} sx={{ bgcolor: '#D0B198', color: '#0E0C0A', fontWeight: 700, px: 3, '&:hover': { bgcolor: '#EED2BC' } }}>
-                      {siteText("src/pages/AccountPage.tsx#6e6d5251fcd5", "Kaydet ")}</Button>
-                    <Button onClick={() => setEditMode(false)} size="small" sx={{ color: '#A0978E', '&:hover': { color: '#FFFFFF' } }}>
+                    <Button variant="contained" size="small" onClick={handleSaveProfile} disabled={savingProfile} sx={{ bgcolor: '#D0B198', color: '#0E0C0A', fontWeight: 700, px: 3, '&:hover': { bgcolor: '#EED2BC' } }}>
+                      {savingProfile ? <CircularProgress size={18} color="inherit" /> : siteText("src/pages/AccountPage.tsx#6e6d5251fcd5", "Kaydet ")}</Button>
+                    <Button onClick={() => setEditMode(false)} disabled={savingProfile} size="small" sx={{ color: '#A0978E', '&:hover': { color: '#FFFFFF' } }}>
                       {siteText("src/pages/AccountPage.tsx#e3566e11bb29", "İptal ")}</Button>
                   </Box>
                 </Box>
@@ -184,6 +274,15 @@ export default function AccountPage() {
                       {profile?.phone || siteText('src/pages/AccountPage.tsx#fallback-unspecified', 'Belirtilmedi')}
                     </Typography>
                   </Grid>
+                  <Grid size={{ xs: 12 }} id="adreslerim">
+                    <Typography sx={{ fontSize: 11, color: '#A0978E', textTransform: 'uppercase', letterSpacing: 1, mb: 0.5 }}>
+                      {siteText('src/pages/AccountPage.tsx#address', 'Adres')}
+                    </Typography>
+                    <Typography sx={{ fontSize: 15, color: '#FFFFFF', fontWeight: 600 }}>
+                      {[profile?.address?.address, profile?.address?.district, profile?.address?.city].filter(Boolean).join(', ')
+                        || siteText('src/pages/AccountPage.tsx#fallback-address', 'Belirtilmedi')}
+                    </Typography>
+                  </Grid>
                 </Grid>
               )}
             </Paper>
@@ -197,6 +296,7 @@ export default function AccountPage() {
                   {siteText("src/pages/AccountPage.tsx#d0d594c901b9", "Tümünü Gör ")}</Button>
               </Box>
 
+              {ordersError && <Alert severity="error" sx={{ mb: 2 }}>{ordersError}</Alert>}
               {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress sx={{ color: '#D0B198' }} /></Box>
               ) : orders.length === 0 ? (

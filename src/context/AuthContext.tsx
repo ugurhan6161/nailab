@@ -11,9 +11,11 @@ type AuthContextType = {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signInAdmin: (email: string, password: string) => Promise<{ error: string | null }>;
+  signInTrainer: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  saveProfile: (updates: Pick<Profile, 'full_name' | 'phone' | 'address'>) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -90,35 +92,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null };
   };
 
-  const signInAdmin = async (email: string, password: string) => {
+  const signInWithRole = async (email: string, password: string, role: 'admin' | 'trainer') => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
 
-    const { data: adminProfile, error: profileError } = await supabase
+    const { data: accountProfile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', data.user.id)
       .maybeSingle();
 
-    if (profileError || adminProfile?.role !== 'admin') {
-      await supabase.auth.signOut();
+    const hasRequiredRole = role === 'admin'
+      ? accountProfile?.role === 'admin'
+      : accountProfile?.role === 'trainer' || accountProfile?.role === 'admin';
+    if (profileError || !hasRequiredRole) {
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) {
+        return { error: `Hesap yetkisi doğrulanamadı ve oturum kapatılamadı: ${signOutError.message}` };
+      }
       setUser(null);
       setSession(null);
       profileUserId.current = null;
       setProfile(null);
       return {
         error: profileError
-          ? `Yönetici yetkisi doğrulanamadı: ${profileError.message}`
-          : 'Bu hesap yönetici yetkisine sahip değil.',
+          ? `Hesap yetkisi doğrulanamadı: ${profileError.message}`
+          : role === 'admin'
+            ? 'Bu hesap yönetici yetkisine sahip değil.'
+            : 'Bu hesap eğitmen portalına erişim yetkisine sahip değil.',
       };
     }
 
     setUser(data.user);
     setSession(data.session);
     profileUserId.current = data.user.id;
-    setProfile(adminProfile);
+    setProfile(accountProfile);
     return { error: null };
   };
+
+  const signInAdmin = (email: string, password: string) => signInWithRole(email, password, 'admin');
+  const signInTrainer = (email: string, password: string) => signInWithRole(email, password, 'trainer');
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const { error } = await supabase.auth.signUp({
@@ -135,8 +148,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   };
 
+  const saveProfile = async (updates: Pick<Profile, 'full_name' | 'phone' | 'address'>) => {
+    if (!user) throw new Error('Profil bilgilerini kaydetmek için giriş yapın.');
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert({ id: user.id, ...updates }, { onConflict: 'id' })
+      .select('*')
+      .single();
+    if (error) throw error;
+    profileUserId.current = user.id;
+    setProfile(data);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, signIn, signInAdmin, signUp, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, session, profile, loading, signIn, signInAdmin, signInTrainer, signUp, signOut, refreshProfile, saveProfile }}>
       {children}
     </AuthContext.Provider>
   );

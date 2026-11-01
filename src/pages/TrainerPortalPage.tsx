@@ -1,89 +1,168 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
-  Box, Typography, Container, Grid, Paper, Button, CircularProgress, Chip
+  Alert, Box, Typography, Container, Paper, Button, CircularProgress, Chip,
 } from '@mui/material';
 import VideoLibraryOutlinedIcon from '@mui/icons-material/VideoLibraryOutlined';
-import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import type { AcademyCourse } from '../lib/supabase';
 import { siteText } from '../context/WebsiteDataContext';
 
-
-
 export default function TrainerPortalPage() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const [courses, setCourses] = useState<AcademyCourse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) { navigate('/egitmen-giris'); return; }
-    if (profile && profile.role !== 'trainer' && profile.role !== 'admin') { navigate('/'); return; }
-    supabase.from('academy_courses').select('*').order('created_at', { ascending: false }).then(({ data }) => {
-      setCourses(data || []);
-      setLoading(false);
-    });
-  }, [user, profile, navigate]);
+    if (authLoading) return;
+    if (!user) {
+      navigate('/egitmen-giris', { replace: true });
+      return;
+    }
+    if (!profile || (profile.role !== 'trainer' && profile.role !== 'admin')) {
+      navigate('/', { replace: true });
+      return;
+    }
 
-  if (!user) return null;
+    let active = true;
+    void (async () => {
+      try {
+        const query = supabase
+          .from('academy_courses')
+          .select('id, title, description, instructor, duration, level, price, image_url, is_active, created_at')
+          .order('created_at', { ascending: false });
+        const { data, error: loadError } = profile.role === 'admin'
+          ? await query
+          : await query.eq('is_active', true);
 
-  const handleSignOut = async () => { await signOut(); navigate('/'); };
+        if (!active) return;
+        if (loadError) {
+          console.error('Eğitmen kursları Supabase üzerinden yüklenemedi:', loadError);
+          setError('Eğitimler yüklenemedi. Supabase bağlantısını ve erişim izinlerini kontrol edin.');
+        } else {
+          setCourses((data ?? []).map((course) => ({ ...course, price: Number(course.price) })));
+          setError(null);
+        }
+      } catch (loadError) {
+        if (!active) return;
+        console.error('Eğitmen kursları Supabase üzerinden yüklenemedi:', loadError);
+        setError('Eğitimler yüklenemedi. Supabase bağlantısını ve erişim izinlerini kontrol edin.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+
+    return () => { active = false; };
+  }, [authLoading, user, profile, navigate]);
+
+  if (authLoading || !user || !profile || (profile.role !== 'trainer' && profile.role !== 'admin')) return null;
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (signOutError) {
+      console.error('Eğitmen oturumu kapatılamadı:', signOutError);
+      setError('Oturum kapatılamadı. Yeniden deneyin.');
+    }
+  };
 
   return (
-    <Box sx={{ bgcolor: '#FFFFFF', minHeight: '90vh', py: 5 }}>
+    <Box sx={{ bgcolor: 'background.default', color: 'text.primary', minHeight: '90vh', py: { xs: 3, md: 5 } }}>
       <Container maxWidth="lg">
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: { xs: 24, md: 32 }, fontWeight: 700, color: '#000000' }}>
+            <Typography sx={{ fontSize: { xs: 24, md: 32 }, fontWeight: 700, color: 'text.primary' }}>
               {siteText("src/pages/TrainerPortalPage.tsx#e34c56676cb8", "Eğitmen Portalı ")}</Typography>
-            <Typography sx={{ fontSize: 14, color: '#5E564D' }}>
+            <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>
               {siteText("src/pages/TrainerPortalPage.tsx#16e58b1f7e0d", "Hoş geldiniz, ")}
-              {profile?.full_name || siteText('src/pages/TrainerPortalPage.tsx#fallback-name', 'Eğitmen')}
+              {profile.full_name || siteText('src/pages/TrainerPortalPage.tsx#fallback-name', 'Eğitmen')}
             </Typography>
           </Box>
-          <Button onClick={handleSignOut} variant="outlined" sx={{ borderColor: '#A9876D', color: '#A9876D', borderRadius: 2 }}>{siteText("src/pages/TrainerPortalPage.tsx#283092d12a56", "Çıkış Yap")}</Button>
+          <Button onClick={handleSignOut} variant="outlined" color="secondary">
+            {siteText("src/pages/TrainerPortalPage.tsx#283092d12a56", "Çıkış Yap")}
+          </Button>
         </Box>
 
-        {/* Stats */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          {[
-            { icon: <VideoLibraryOutlinedIcon />, num: courses.length, label: siteText('src/pages/TrainerPortalPage.tsx#stat.active-courses', 'Aktif Kurs'), color: '#A9876D' },
-            { icon: <GroupOutlinedIcon />, num: '1.247', label: siteText('src/pages/TrainerPortalPage.tsx#stat.total-students', 'Toplam Öğrenci'), color: '#3DA56F' },
-            { icon: <StarBorderIcon />, num: '4.8', label: siteText('src/pages/TrainerPortalPage.tsx#stat.average-rating', 'Ortalama Puan'), color: '#B8924A' },
-            { icon: <StarBorderIcon />, num: '₺48K', label: siteText('src/pages/TrainerPortalPage.tsx#stat.monthly-income', 'Aylık Gelir'), color: '#3A7BD5' },
-          ].map((s, i) => (
-            <Grid size={{ xs: 6, md: 3 }} key={i}>
-              <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid rgba(201,149,106,0.15)' }}>
-                <Box sx={{ color: s.color, mb: 1 }}>{s.icon}</Box>
-                <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 24, fontWeight: 700, color: '#000000' }}>{s.num}</Typography>
-                <Typography sx={{ fontSize: 12, color: '#5E564D' }}>{s.label}</Typography>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
+        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-        {/* Courses */}
-        <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid rgba(201,149,106,0.15)' }}>
-          <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontSize: 20, fontWeight: 700, color: '#000000', mb: 3 }}>
-            {siteText("src/pages/TrainerPortalPage.tsx#a8bee54ee0f5", "Kurslarım ")}</Typography>
+        <Paper sx={{ p: { xs: 2, md: 3 }, border: '1px solid', borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap', mb: 3 }}>
+            <Typography sx={{ fontSize: 20, fontWeight: 700, color: 'text.primary' }}>
+              {siteText("src/pages/TrainerPortalPage.tsx#a8bee54ee0f5", "Yayındaki Eğitimler")}
+            </Typography>
+            {!loading && !error && (
+              <Chip
+                icon={<VideoLibraryOutlinedIcon />}
+                label={`${courses.length} ${siteText('src/pages/TrainerPortalPage.tsx#stat.active-courses', 'eğitim')}`}
+                color="secondary"
+                variant="outlined"
+              />
+            )}
+          </Box>
+
           {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress sx={{ color: '#A9876D' }} /></Box>
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress color="secondary" />
+            </Box>
+          ) : error ? null : courses.length === 0 ? (
+            <Box sx={{ textAlign: 'center', py: 6 }}>
+              <Typography sx={{ color: 'text.primary', fontWeight: 600, mb: 1 }}>
+                {siteText('src/pages/TrainerPortalPage.tsx#empty.title', 'Yayında eğitim yok')}
+              </Typography>
+              <Typography sx={{ color: 'text.secondary' }}>
+                {siteText('src/pages/TrainerPortalPage.tsx#empty.description', 'Yayındaki eğitimler burada görünür.')}
+              </Typography>
+              {profile.role === 'admin' && (
+                <Button component={Link} to="/admin/icerik" color="secondary" sx={{ mt: 2 }}>
+                  {siteText('src/pages/TrainerPortalPage.tsx#empty.admin-action', 'Eğitimleri yönet')}
+                </Button>
+              )}
+            </Box>
           ) : (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {courses.map(c => (
-                <Box key={c.id} sx={{ display: 'flex', gap: 2, p: 2, bgcolor: '#FFFFFF', borderRadius: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <Box component="img" src={c.image_url} alt={c.title} sx={{ width: 60, height: 60, borderRadius: 2, objectFit: 'cover' }} />
+              {courses.map((course) => (
+                <Box
+                  key={course.id}
+                  sx={{
+                    display: 'flex',
+                    gap: 2,
+                    p: 2,
+                    bgcolor: 'background.default',
+                    borderRadius: 2,
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    minWidth: 0,
+                  }}
+                >
+                  {course.image_url && (
+                    <Box
+                      component="img"
+                      src={course.image_url}
+                      alt={course.title}
+                      sx={{ width: 60, height: 60, borderRadius: 2, objectFit: 'cover', flexShrink: 0 }}
+                    />
+                  )}
                   <Box sx={{ flex: 1, minWidth: 150 }}>
-                    <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontWeight: 600, fontSize: 15, color: '#000000' }}>{c.title}</Typography>
-                    <Typography sx={{ fontSize: 12, color: '#5E564D' }}>{c.duration} {siteText("src/pages/TrainerPortalPage.tsx#6e01f78b9eb4", "· ")}{c.level}</Typography>
+                    <Typography sx={{ fontWeight: 600, fontSize: 15, color: 'text.primary' }}>{course.title}</Typography>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+                      {course.instructor} · {course.duration || course.level}
+                    </Typography>
                   </Box>
-                  <Chip label={siteText("src/pages/TrainerPortalPage.tsx#d5f884547452", "Aktif")} size="small" sx={{ bgcolor: '#E8F5E9', color: '#3DA56F', fontWeight: 600, fontSize: 11 }} />
-                  <Typography sx={{ fontFamily: 'Jost, Arial, sans-serif', fontWeight: 700, fontSize: 16, color: '#000000' }}>
-                    {c.price.toLocaleString('tr-TR')} {siteText("src/pages/TrainerPortalPage.tsx#fb0484ae0c37", "₺ ")}</Typography>
-                  <Button size="small" variant="outlined" sx={{ borderColor: '#A9876D', color: '#A9876D', fontSize: 12 }}>{siteText("src/pages/TrainerPortalPage.tsx#e92f6f072935", "Yönet")}</Button>
+                  {profile.role === 'admin' && (
+                    <Chip
+                      label={course.is_active ? 'Aktif' : 'Pasif'}
+                      size="small"
+                      color={course.is_active ? 'success' : 'default'}
+                      variant="outlined"
+                    />
+                  )}
+                  <Typography sx={{ fontWeight: 700, fontSize: 16, color: 'secondary.main' }}>
+                    {course.price.toLocaleString('tr-TR')} {siteText("src/pages/TrainerPortalPage.tsx#fb0484ae0c37", "₺")}
+                  </Typography>
                 </Box>
               ))}
             </Box>
