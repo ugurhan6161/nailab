@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Accordion, AccordionDetails, AccordionSummary, Alert, Box, Button, Checkbox, CircularProgress,
@@ -63,6 +63,7 @@ export default function AdminContentPage() {
   const navigate = useNavigate();
   const [websiteData, setWebsiteData] = useState<WebsiteData>({ copy: {} });
   const [productDrafts, setProductDrafts] = useState<StoreProduct[] | null>(null);
+  const [productImageFiles, setProductImageFiles] = useState<Record<string, { file: File; previewUrl: string }>>({});
   const [categoryDraftsState, setCategoryDrafts] = useState<CategoryDraft[] | null>(null);
   const [courseDrafts, setCourseDrafts] = useState<CourseDraft[]>([]);
   const [copySearch, setCopySearch] = useState('');
@@ -78,6 +79,11 @@ export default function AdminContentPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [copyKeyDraft, setCopyKeyDraft] = useState('');
   const [copyValueDraft, setCopyValueDraft] = useState('');
+  const productImagePreviewUrls = useRef(new Set<string>());
+
+  useEffect(() => () => {
+    productImagePreviewUrls.current.forEach((url) => URL.revokeObjectURL(url));
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -178,6 +184,31 @@ export default function AdminContentPage() {
     setNotice(null);
   };
 
+  const selectProductImage = (productId: string, file?: File) => {
+    if (!file) return;
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setError('Yalnızca JPG, PNG veya WebP görsel dosyaları yükleyebilirsiniz.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Görsel dosyası 5 MB veya daha küçük olmalıdır.');
+      return;
+    }
+
+    const previous = productImageFiles[productId];
+    if (previous) {
+      URL.revokeObjectURL(previous.previewUrl);
+      productImagePreviewUrls.current.delete(previous.previewUrl);
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    productImagePreviewUrls.current.add(previewUrl);
+    setProductImageFiles((current) => ({ ...current, [productId]: { file, previewUrl } }));
+    updateProduct(productId, 'image', previewUrl);
+    setError(null);
+  };
+
   const addProduct = () => {
     const id = `urun-${Date.now()}`;
     setProductDrafts((current) => [...(current ?? products), {
@@ -197,6 +228,8 @@ export default function AdminContentPage() {
     setSavingSection('products');
     setError(null);
     setNotice(null);
+    const uploadedImagePaths: string[] = [];
+    let productRowsPersisted = false;
     try {
       const submittedSlugs = new Set(editableProducts.map((product) => product.id));
       const validCategorySlugs = new Set(categories.map((category) => category.tag));
@@ -225,11 +258,33 @@ export default function AdminContentPage() {
         throw new Error('Ürünlerde ad, kayıtlı kategori, görsel ve açıklama zorunludur. Fiyat, stok ve puan değerlerini kontrol edin.');
       }
 
+      for (let index = 0; index < editableProducts.length; index += 1) {
+        const selectedImage = productImageFiles[editableProducts[index].id];
+        if (!selectedImage) continue;
+
+        const extension = selectedImage.file.type === 'image/jpeg'
+          ? 'jpg'
+          : selectedImage.file.type === 'image/png' ? 'png' : 'webp';
+        const path = `${productRows[index].id}/${crypto.randomUUID()}.${extension}`;
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(path, selectedImage.file, {
+            cacheControl: '3600',
+            contentType: selectedImage.file.type,
+            upsert: false,
+          });
+        if (uploadError) throw new Error(`Ürün görseli yüklenemedi: ${uploadError.message}`);
+
+        uploadedImagePaths.push(path);
+        productRows[index].image_url = supabase.storage.from('product-images').getPublicUrl(path).data.publicUrl;
+      }
+
       if (productRows.length > 0) {
         const { error: productsSaveError } = await supabase
           .from('products')
           .upsert(productRows, { onConflict: 'slug' });
         if (productsSaveError) throw new Error(`Ürünler kaydedilemedi: ${productsSaveError.message}`);
+        productRowsPersisted = true;
       }
 
       const { data: existingProducts, error: existingProductsError } = await supabase
@@ -250,9 +305,16 @@ export default function AdminContentPage() {
       }
 
       setProductDrafts(null);
+      productImagePreviewUrls.current.forEach((url) => URL.revokeObjectURL(url));
+      productImagePreviewUrls.current.clear();
+      setProductImageFiles({});
       setNotice('Ürün değişiklikleri kaydedildi. Kaldırılan ürünler sipariş geçmişi korunarak satıştan çıkarıldı.');
       refresh();
     } catch (saveError) {
+      if (uploadedImagePaths.length > 0 && !productRowsPersisted) {
+        const { error: cleanupError } = await supabase.storage.from('product-images').remove(uploadedImagePaths);
+        if (cleanupError) console.error('Kaydedilemeyen ürün görsellerinin temizliği başarısız:', cleanupError);
+      }
       setError(saveError instanceof Error ? saveError.message : 'Ürünler kaydedilemedi.');
     } finally {
       setSavingSection(null);
@@ -596,7 +658,7 @@ export default function AdminContentPage() {
                     </Grid>
                     {([
                       ['price', 'Fiyat (TL)', 'number'],
-                      ['image', 'Görsel yolu veya URL', 'text'],
+                      ['image', 'Görsel URL’si', 'text'],
                       ['description', 'Açıklama', 'text'],
                       ['stock', 'Stok', 'number'],
                       ['rating', 'Puan (0–5)', 'number'],
@@ -615,6 +677,35 @@ export default function AdminContentPage() {
                           } : undefined} />
                       </Grid>
                     ))}
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <TextField
+                        fullWidth
+                        id={`product-image-${product.id}`}
+                        type="file"
+                        name={`product-image-${product.id}`}
+                        label="Cihazdan görsel yükle"
+                        inputProps={{
+                          accept: 'image/jpeg,image/png,image/webp',
+                        }}
+                        helperText="JPG, PNG veya WebP · En fazla 5 MB"
+                        onChange={(event) => {
+                          const input = event.currentTarget as HTMLInputElement;
+                          const file = input.files?.[0];
+                          selectProductImage(product.id, file);
+                          input.value = '';
+                        }}
+                      />
+                    </Grid>
+                    {(productImageFiles[product.id]?.previewUrl || product.image) && (
+                      <Grid size={{ xs: 12 }}>
+                        <Box
+                          component="img"
+                          src={productImageFiles[product.id]?.previewUrl || product.image}
+                          alt={`${product.title || 'Ürün'} görsel önizlemesi`}
+                          sx={{ width: 120, height: 120, borderRadius: 2, objectFit: 'cover', border: '1px solid', borderColor: 'divider' }}
+                        />
+                      </Grid>
+                    )}
                     <Grid size={{ xs: 12, sm: 6 }}>
                       <FormControlLabel control={<Checkbox checked={product.isNew ?? false}
                         onChange={(event) => updateProduct(product.id, 'isNew', event.target.checked)} />} label="Yeni ürün etiketi" />
