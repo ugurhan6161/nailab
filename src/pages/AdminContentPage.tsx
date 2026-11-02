@@ -201,7 +201,7 @@ export default function AdminContentPage() {
       const submittedSlugs = new Set(editableProducts.map((product) => product.id));
       const validCategorySlugs = new Set(categories.map((category) => category.tag));
       const productRows = editableProducts.map((product) => ({
-        ...(product.databaseId ? { id: product.databaseId } : {}),
+        id: product.databaseId ?? crypto.randomUUID(),
         slug: product.id,
         name: product.title.trim(),
         category: product.category.trim(),
